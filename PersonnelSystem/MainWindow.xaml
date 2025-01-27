@@ -4,9 +4,140 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PersonnelSystem"
+        
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        d:DataContext="{d:DesignInstance Type=local:MainWindow}"
+        Title="Кадровое агенство" 
+        Height="450" 
+        Width="800" 
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <Style x:Key="MarginForControl">
+            <Setter Property="Control.Margin" 
+                    Value="2.5" />
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <!--Правая половина-->
+        
+        <Grid Grid.Column="1"
+                Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Фамилия"
+                       Grid.Row="0"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <TextBox Width="300"
+                     HorizontalAlignment="Right"
+                     Grid.Row="0"
+                     Grid.Column="1"
+                     Style="{StaticResource MarginForControl}"/>
+
+            <TextBlock Text="Имя"
+                       Grid.Row="1"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <TextBox Width="300"
+                     HorizontalAlignment="Right"
+                     Grid.Row="1"
+                     Grid.Column="1"
+                     Style="{StaticResource MarginForControl}"/>
+
+            <TextBlock Text="Отчество"
+                       Grid.Row="2"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <TextBox Width="300"
+                     HorizontalAlignment="Right"
+                     Grid.Row="2"
+                     Grid.Column="1"
+                     Style="{StaticResource MarginForControl}"/>
+        </Grid>
+
+        <Button x:Name="Add"
+                Content="Добавить сотрудника"
+                Grid.Row="1"
+                Grid.Column="1"
+                Width="250"
+                Height="50"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Right"
+                Style="{StaticResource MarginForControl}"/>
+
+        <DockPanel Grid.Row="2"
+                   Grid.Column="1">
+            <TextBlock Text="Список сотрудников" 
+                       DockPanel.Dock="Top"
+                       Style="{StaticResource MarginForControl}"/>
+
+            <ListView x:Name="ListViewEmployees" 
+                      Style="{StaticResource MarginForControl}"
+                      ItemsSource="{Binding ListEmployees}" >
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding NameEmployee}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding SurnameEmployee}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding PatronymicEmployee}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding DateAdmissionEmployee}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding DateDismissalEmployee}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
+        
+        <!--Левая половина-->
+
+        <StackPanel Orientation="Vertical"
+                    Style="{StaticResource MarginForControl}">
+            <Button Content="Загрузить информацию из CSV файла"
+                    Command="{Binding Path=ReadCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                    Style="{StaticResource MarginForControl}" 
+                    Width="Auto"/>
+
+            <Button Content="Показать список отделов"
+                    Style="{StaticResource MarginForControl}" 
+                    Width="Auto"/>
+        </StackPanel >
+
+        <TreeView x:Name="TreeViewDepartments" 
+                  Grid.Row="1"
+                  Grid.Column="0"
+                  Grid.RowSpan="2"
+                  Height="Auto"
+                  ItemsSource="{Binding ListDepartments}"
+                  SelectedItemChanged="TreeView_SelectedItemChanged">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Path=Nodes}">
+                    <TextBlock Text="{Binding NameDepartment}" />
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
     </Grid>
 </Window>
