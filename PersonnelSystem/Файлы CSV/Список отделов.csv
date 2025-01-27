@@ -1,0 +1,5 @@
+TagClass;Id_department;NameDepartment;DepartmentsArray;TypeDepartments
+Department;1;Кадры;2;1;
+Employee;Иван;Поляков;;;;;
+Department;2;Разрабы;;2;
+Employee;;;;;;;
