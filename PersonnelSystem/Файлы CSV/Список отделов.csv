@@ -1,5 +1,9 @@
 TagClass;Id_department;NameDepartment;DepartmentsArray;TypeDepartments
+TagClass;ID_employee;SurnameEmployee;NameEmployee;PatronymicEmployee;DepartmentEmployee;DateAdmissionEmployee;DateDismissalEmployee
 Department;1;Кадры;2;1;
-Employee;Иван;Поляков;;;;;
+Employee;1;Первых;Иван;Чачевич;1;;
+Employee;3;Вареных;Кирилл;Саевич;1;;
+Employee;4;Дубных;Николай;Стрекоткин;1;;
 Department;2;Разрабы;;2;
-Employee;;;;;;;
+Employee;2;Смирнов;Иван;Иванович;2;;
+Employee;5;Козлов;Петр;Кириллович;2;;

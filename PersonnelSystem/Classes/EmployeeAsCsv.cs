@@ -49,7 +49,14 @@ namespace PersonnelSystem.Classes
         /// </summary>
         public string DateDismissalEmployee { get; set; }
 
-        public EmployeeAsCsv(string TagClass, string ID_employee, string SurnameEmployee, string NameEmployee, string PatronymicEmployee, string DepartmentEmployee, string DateAdmissionEmployee, string DateDismissalEmployee)
+        public EmployeeAsCsv(string TagClass,
+                             string ID_employee,
+                             string SurnameEmployee,
+                             string NameEmployee,
+                             string PatronymicEmployee,
+                             string DepartmentEmployee,
+                             string DateAdmissionEmployee,
+                             string DateDismissalEmployee)
         {
             this.TagClass = TagClass;
             this.ID_employee = ID_employee;

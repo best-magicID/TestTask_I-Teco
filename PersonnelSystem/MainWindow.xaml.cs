@@ -1,28 +1,22 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
-using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using PersonnelSystem.Classes;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PersonnelSystem
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         #region ПОЛЯ И СВОЙСТВА
 
@@ -47,6 +41,80 @@ namespace PersonnelSystem
         public List<EmployeeAsCsv> ListEmployeesAsCsv { get; set; } = new List<EmployeeAsCsv>();
 
         public RaiseCommand ReadCsvFileCommand { get; set; }
+        public RaiseCommand AddEmployeeCommand {  get; set; }
+        public RaiseCommand NewEmployeeCommand {  get; set; }
+        public RaiseCommand DeleteEmployeeCommand { get; set; }
+
+
+        private string _SurnameEmployee = string.Empty;
+        public string SurnameEmployee 
+        { 
+            get => _SurnameEmployee;
+            set
+            {
+                if (_SurnameEmployee != value)
+                {
+                    _SurnameEmployee = value;
+                    OnPropertyChanged(nameof(SurnameEmployee));
+                }
+            }
+        }
+
+        private string _NameEmployee = string.Empty;
+        public string NameEmployee
+        {
+            get => _NameEmployee;
+            set
+            {
+                if (_NameEmployee != value)
+                {
+                    _NameEmployee = value;
+                    OnPropertyChanged(nameof(NameEmployee));
+                }
+            }
+        }
+
+        private string _PatronymicEmployee = string.Empty;
+        public string PatronymicEmployee
+        {
+            get => _PatronymicEmployee;
+            set
+            {
+                if (_PatronymicEmployee != value)
+                {
+                    _PatronymicEmployee = value;
+                    OnPropertyChanged(nameof(PatronymicEmployee));
+                }
+            }
+        }
+
+        private Department _DepartmentEmployee;
+        public Department DepartmentEmployee
+        {
+            get => _DepartmentEmployee;
+            set
+            {
+                if (_DepartmentEmployee != value)
+                {
+                    _DepartmentEmployee = value;
+                    OnPropertyChanged(nameof(DepartmentEmployee));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Выбранный сотрудник
+        /// </summary>
+        public Employee CurrentEmployee
+        {
+            get => _CurrentEmployee;
+            set
+            {
+                _CurrentEmployee = value;
+                OnPropertyChanged(nameof(CurrentEmployee));
+            }
+        }
+        private Employee _CurrentEmployee;
 
         #endregion
 
@@ -58,22 +126,94 @@ namespace PersonnelSystem
 
             LoadCommands();
 
-            ReadCsvFileCommand.Execute(null);
+            ReadCsvFileCommand_Execute(null);
         }
 
         #endregion
 
         #region МЕТОДЫ И КОМАНДЫ
 
+        #region ОБНОВЛЕНИЕ UI
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public void OnPropertyChanged(string propertyName)
+        {
+            var propertyChanged = PropertyChanged;
+            if (propertyChanged != null)
+            {
+                propertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Загрузка команд
+        /// </summary>
         public void LoadCommands()
         {
             ReadCsvFileCommand = new RaiseCommand(ReadCsvFileCommand_Execute);
+            AddEmployeeCommand = new RaiseCommand(AddEmployeeCommand_Execute, AddEmployeeCommand_CanExecute);
+            NewEmployeeCommand = new RaiseCommand(NewEmployeeCommand_Execute);
         }
 
+        private bool AddEmployeeCommand_CanExecute(object? parameter)
+        {
+            return CheckField();
+        }
+
+        private void AddEmployeeCommand_Execute(object? parameter)
+        {
+            var countEmployee = ListEmployees.Count + 1;
+
+            Employee employee = new Employee(TagClass: EmployeeAsCsv.Tag,
+                                            ID_employee: countEmployee,
+                                            SurnameEmployee: SurnameEmployee,
+                                            NameEmployee: NameEmployee,
+                                            PatronymicEmployee: PatronymicEmployee,
+                                            DepartmentEmployee: DepartmentEmployee,
+                                            DateAdmissionEmployee: DateTime.Now.Date,
+                                            DateDismissalEmployee: null);
+
+            ListEmployees.Add(employee);
+            ListDepartments.First(x => x == employee.DepartmentEmployee).ListEmployees.Add(employee);
+        }
+
+        public bool CheckField()
+        {
+            if(string.IsNullOrEmpty(TextBoxSurnameEmployee.Text))
+                return false;
+
+            if (string.IsNullOrEmpty(TextBoxNameEmployee.Text))
+                return false;
+
+            if (string.IsNullOrEmpty(TextBoxPatronymicEmployee.Text))
+                return false;
+
+            if (string.IsNullOrEmpty(ComboBoxListDepartment.Text))
+                return false;
+
+            if (string.IsNullOrEmpty(DatePickerAdmissionEmployee.Text))
+                return false;
+
+            return true;
+        }
+
+        public void NewEmployeeCommand_Execute(object? parameter)
+        {
+            ClearTextInControl();
+        }
+
+        /// <summary>
+        /// Чтение CSV файла
+        /// </summary>
         private void ReadCsvFileCommand_Execute(object? parameter)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.ShowDialog();
+
+            if (openFileDialog.FileName == string.Empty)
+                return;
 
             using var streamReader = new StreamReader(openFileDialog.FileName, Encoding.UTF8);
            
@@ -83,10 +223,7 @@ namespace PersonnelSystem
                 Delimiter = ";"
             };
 
-            ListDepartments.Clear();
-            ListDepartmentsAsCsv.Clear();
-            ListEmployees.Clear();
-            ListEmployeesAsCsv.Clear();
+            ClearAllList();
 
             using (CsvReader? csvReader = new CsvReader(streamReader, csvConfig))
             {
@@ -117,8 +254,8 @@ namespace PersonnelSystem
                             ListEmployeesAsCsv.Add(new EmployeeAsCsv(
                                 TagClass: employeesAsCsv.TagClass,
                                 ID_employee: employeesAsCsv.ID_employee,
+                                SurnameEmployee: employeesAsCsv.SurnameEmployee, 
                                 NameEmployee: employeesAsCsv.NameEmployee,
-                                SurnameEmployee: employeesAsCsv.SurnameEmployee,
                                 PatronymicEmployee: employeesAsCsv.PatronymicEmployee,
                                 DepartmentEmployee: employeesAsCsv.DepartmentEmployee,
                                 DateAdmissionEmployee: employeesAsCsv.DateAdmissionEmployee,
@@ -131,51 +268,114 @@ namespace PersonnelSystem
                 }
             }
 
+            ConvertListsCsvInLists();
+        }
 
-            //var records = csvReader.GetRecords<DepartmentAsCsv>();
-
-            //foreach (var record in records)
-            //{
-            //    ListDepartmentsAsCsv.Add(new DepartmentAsCsv(
-            //        TagClass: record.TagClass,
-            //        Id_department: record.Id_department,
-            //        NameDepartment: record.NameDepartment,
-            //        DepartmentsString: record.DepartmentsString,
-            //        TypeDepartment: record.TypeDepartment));
-            //}
-            
-
+        /// <summary>
+        /// Конвертируем Листы CSV в Листы для отображения
+        /// </summary>
+        public void ConvertListsCsvInLists()
+        {
             foreach (var departmentsAsCsv in ListDepartmentsAsCsv)
             {
                 ListDepartments.Add(new Department(departmentsAsCsv));
             }
-            TreeViewDepartments.ItemsSource = ListDepartments;
 
-            foreach (var item in ListEmployeesAsCsv)
+            foreach (var employeesAsCsv in ListEmployeesAsCsv)
             {
-                ListEmployees.Add(new Employee(item));
+                ListEmployees.Add(new Employee(employeesAsCsv));
             }
-            ListViewEmployees.ItemsSource = ListEmployees;
+
+            // Добавление в отделы сотрудников
+            foreach (var department in ListDepartments)
+            {
+                // Лист сотрудниками для конкретного отдела 
+                department.ListEmployees = ListEmployees.Where(x => int.Parse(x.DepartmentEmployeeString) == department.Id_department).ToList<Employee>();
+
+                foreach (var employee in department.ListEmployees)
+                {
+                    employee.DepartmentEmployee = department;
+                }
+            }
+
+            TreeViewDepartments.ItemsSource = ListDepartments;
+            ComboBoxListDepartment.ItemsSource = ListDepartments;
+            //ListViewEmployees.ItemsSource = ListEmployees;
+            DataGridEmployee.ItemsSource = ListEmployees;
+        }
+
+        /// <summary>
+        /// Отображение списка сотрудников для конкретного отдела
+        /// </summary>
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var treeViewSelectedItem = (sender as TreeView)?.SelectedItem;
+            var department = treeViewSelectedItem as Department;
+
+            if (department is null)
+                return;
+
+            ListEmployees.Clear();
+            ClearTextInControl();
+
+            foreach (var item in department.ListEmployees)
+            {
+                ListEmployees.Add(item);
+            }
+        }
+
+        /// <summary>
+        /// Чистка всех списков
+        /// </summary>
+        public void ClearAllList()
+        {
+            ListDepartments.Clear();
+            ListDepartmentsAsCsv.Clear();
+            ListEmployees.Clear();
+            ListEmployeesAsCsv.Clear();
         }
 
         #endregion
 
-        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        /// <summary>
+        /// Выбор сотрудника из списка
+        /// </summary>
+        private void DataGridEmployee_CurrentCellChanged(object sender, EventArgs e)
         {
-            ListEmployees.Clear();
+            var dataGrid = sender as DataGrid;
+            var employee = dataGrid?.CurrentItem as Employee;
 
-            //for (int i = 0; i < 6; i++)
-            //{
-            //    ListEmployees.Add(new Employee(
-            //        ID_employee: i, 
-            //        NameEmployee: i + "Name", 
-            //        SurnameEmployee: i + "Surname", 
-            //        PatronymicEmployee: i + "Patronymic", 
-            //        DepartmentEmployee: ListDepartments[0], 
-            //        DateAdmission: DateTime.Now));
-            //}
+            if (employee == null || employee == CurrentEmployee)
+                return;
 
-            //ListViewEmployees.ItemsSource = ListEmployees;
+            FillFields(employee);
+
+            //CurrentEmployee = employee;
+        }
+
+        /// <summary>
+        /// Заполнение полей
+        /// </summary>
+        public void FillFields(Employee employee)
+        {
+            this.SurnameEmployee = employee.SurnameEmployee;
+            this.NameEmployee = employee.NameEmployee;
+            this.PatronymicEmployee = employee.PatronymicEmployee;
+
+            this.DepartmentEmployee = employee.DepartmentEmployee;
+        }
+
+        /// <summary>
+        /// Очистка контролов
+        /// </summary>
+        public void ClearTextInControl()
+        {
+            TextBoxSurnameEmployee.Text = string.Empty;
+            TextBoxNameEmployee.Text = string.Empty;
+            TextBoxPatronymicEmployee.Text = string.Empty;
+            ComboBoxListDepartment.SelectedItem = null;
+            DatePickerAdmissionEmployee.Text = string.Empty;
+            DatePickerDismissalEmployee.Text = string.Empty;
         }
 
     } //END
