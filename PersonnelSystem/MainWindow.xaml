@@ -9,7 +9,7 @@
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
         Title="Кадровое агенство" 
         Height="450" 
-        Width="800" 
+        Width="1000" 
         WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
@@ -21,7 +21,7 @@
     
     <Grid Margin="5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0.4*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -35,55 +35,113 @@
         <Grid Grid.Column="1"
                 Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Text="Фамилия"
                        Grid.Row="0"
                        Grid.Column="0"
                        Style="{StaticResource MarginForControl}"/>
-            <TextBox Width="300"
+            <TextBox x:Name="TextBoxSurnameEmployee" 
+                     Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="0"
                      Grid.Column="1"
-                     Style="{StaticResource MarginForControl}"/>
+                     Style="{StaticResource MarginForControl}"
+                     Text="{Binding SurnameEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Имя"
                        Grid.Row="1"
                        Grid.Column="0"
                        Style="{StaticResource MarginForControl}"/>
-            <TextBox Width="300"
+            <TextBox x:Name="TextBoxNameEmployee" 
+                     Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="1"
                      Grid.Column="1"
-                     Style="{StaticResource MarginForControl}"/>
+                     Style="{StaticResource MarginForControl}"
+                     Text="{Binding NameEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Отчество"
                        Grid.Row="2"
                        Grid.Column="0"
                        Style="{StaticResource MarginForControl}"/>
-            <TextBox Width="300"
+            <TextBox x:Name="TextBoxPatronymicEmployee" 
+                     Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="2"
                      Grid.Column="1"
-                     Style="{StaticResource MarginForControl}"/>
+                     Style="{StaticResource MarginForControl}"
+                     Text="{Binding PatronymicEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+
+            <TextBlock Text="Отдел"
+                       Grid.Row="3"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <ComboBox x:Name="ComboBoxListDepartment" 
+                      Width="300"
+                      Grid.Row="3"
+                      Grid.Column="1"
+                      Style="{StaticResource MarginForControl}"
+                      ItemsSource="{Binding ListDepartments}"
+                      SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding NameDepartment}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Text="Дата трудоустройства"
+                       Grid.Row="4"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <DatePicker x:Name="DatePickerAdmissionEmployee" 
+                        Width="300"
+                        Grid.Row="4"
+                        Grid.Column="1"
+                        Style="{StaticResource MarginForControl}"/>
+
+            <TextBlock Text="Дата увольнения"
+                       Grid.Row="5"
+                       Grid.Column="0"
+                       Style="{StaticResource MarginForControl}"/>
+            <DatePicker x:Name="DatePickerDismissalEmployee" 
+                        Width="300"
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        Style="{StaticResource MarginForControl}"/>
         </Grid>
 
-        <Button x:Name="Add"
-                Content="Добавить сотрудника"
-                Grid.Row="1"
-                Grid.Column="1"
-                Width="250"
-                Height="50"
-                VerticalAlignment="Top"
-                HorizontalAlignment="Right"
-                Style="{StaticResource MarginForControl}"/>
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Style="{StaticResource MarginForControl}">
+            <Button x:Name="ButtonNewEmployee"
+                    Content="Новый сотрудник"
+                    Width="150"
+                    Height="30"
+                    Style="{StaticResource MarginForControl}"
+                    Command="{Binding NewEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            
+            <Button x:Name="ButtonAddEmployee"
+                    Content="Добавить сотрудника"
+                    Width="150"
+                    Height="30"
+                    Style="{StaticResource MarginForControl}"
+                    Command="{Binding AddEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+        </StackPanel>
+        
 
         <DockPanel Grid.Row="2"
                    Grid.Column="1">
@@ -91,53 +149,94 @@
                        DockPanel.Dock="Top"
                        Style="{StaticResource MarginForControl}"/>
 
-            <ListView x:Name="ListViewEmployees" 
+            <DataGrid x:Name="DataGridEmployee"
+                      Style="{StaticResource MarginForControl}"
+                      ItemsSource="{Binding ListEmployees}" 
+                      AutoGenerateColumns="False" 
+                      CurrentCellChanged="DataGridEmployee_CurrentCellChanged"
+                      >
+                
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Фамилия" 
+                                        Binding="{Binding SurnameEmployee}" 
+                                        Width="Auto" />
+                    <DataGridTextColumn Header="Имя"
+                                        Binding="{Binding NameEmployee}" 
+                                        Width="Auto" />
+                    <DataGridTextColumn Header="Отчество" 
+                                        Binding="{Binding PatronymicEmployee}" 
+                                        Width="Auto" />
+                    <DataGridTextColumn Header="Отдел" 
+                                        Binding="{Binding DepartmentEmployee.NameDepartment}" 
+                                        Width="Auto" />
+                    <DataGridTextColumn Header="Дата трудоустройства" 
+                                        Binding="{Binding DateAdmissionEmployee, StringFormat=\{0:dd.MM.yy\}}" 
+                                        Width="Auto" />
+                    <DataGridTextColumn Header="Дата увольнения" 
+                                        Binding="{Binding DateDismissalEmployee, StringFormat=\{0:dd.MM.yy\}}" 
+                                        Width="Auto" />
+                </DataGrid.Columns>
+
+            </DataGrid>
+            
+            <!--<ListView x:Name="ListViewEmployees" 
                       Style="{StaticResource MarginForControl}"
                       ItemsSource="{Binding ListEmployees}" >
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding NameEmployee}"/>
-                            <TextBlock Text=" "/>
                             <TextBlock Text="{Binding SurnameEmployee}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding NameEmployee}"/>
                             <TextBlock Text=" "/>
                             <TextBlock Text="{Binding PatronymicEmployee}"/>
                             <TextBlock Text=" "/>
-                            <TextBlock Text="{Binding DateAdmissionEmployee}"/>
+                            <TextBlock Text="{Binding DateAdmissionEmployee, StringFormat=\{0:dd.MM.yy\}}"/>
                             <TextBlock Text=" "/>
-                            <TextBlock Text="{Binding DateDismissalEmployee}"/>
+                            <TextBlock Text="{Binding DateDismissalEmployee, StringFormat=\{0:dd.MM.yy\}}"/>
+                            <TextBlock Text=" "/>
+                            <TextBlock Text="{Binding DepartmentEmployee.NameDepartment}"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-            </ListView>
+            </ListView>-->
         </DockPanel>
         
         <!--Левая половина-->
 
-        <StackPanel Orientation="Vertical"
-                    Style="{StaticResource MarginForControl}">
-            <Button Content="Загрузить информацию из CSV файла"
-                    Command="{Binding Path=ReadCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                    Style="{StaticResource MarginForControl}" 
-                    Width="Auto"/>
+        <DockPanel Grid.Row="0"
+                   Grid.Column="0"
+                   Grid.RowSpan="3"
+                   Style="{StaticResource MarginForControl}" >
 
-            <Button Content="Показать список отделов"
-                    Style="{StaticResource MarginForControl}" 
-                    Width="Auto"/>
-        </StackPanel >
+            <StackPanel Orientation="Vertical"
+                        DockPanel.Dock="Top"
+                        Style="{StaticResource MarginForControl}">
+                <Button Content="Загрузить информацию из CSV файла"
+                        Command="{Binding Path=ReadCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"/>
 
-        <TreeView x:Name="TreeViewDepartments" 
-                  Grid.Row="1"
-                  Grid.Column="0"
-                  Grid.RowSpan="2"
-                  Height="Auto"
-                  ItemsSource="{Binding ListDepartments}"
-                  SelectedItemChanged="TreeView_SelectedItemChanged">
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Path=Nodes}">
-                    <TextBlock Text="{Binding NameDepartment}" />
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+                <Button Content="Показать список отделов"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"/>
+            </StackPanel >
+
+            <TextBlock Text="Список отделов" 
+                       DockPanel.Dock="Top"
+                       Style="{StaticResource MarginForControl}"/>
+            <TreeView x:Name="TreeViewDepartments" 
+                      
+                      Height="Auto"
+                      ItemsSource="{Binding ListDepartments}"
+                      SelectedItemChanged="TreeView_SelectedItemChanged">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Path=Nodes}">
+                        <TextBlock Text="{Binding NameDepartment}" />
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </DockPanel>
+        
     </Grid>
 </Window>
