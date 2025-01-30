@@ -179,7 +179,7 @@
                       AutoGenerateColumns="False" 
                       CurrentCellChanged="DataGridEmployee_CurrentCellChanged"
                       CanUserAddRows="False"
-                      IsReadOnly="False" >
+                      IsReadOnly="False">
                 
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Фамилия" 
@@ -251,7 +251,6 @@
                        DockPanel.Dock="Top"
                        Style="{StaticResource MarginForControl}"/>
             <TreeView x:Name="TreeViewDepartments" 
-                      
                       Height="Auto"
                       ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">

@@ -12,42 +12,48 @@ namespace PersonnelSystem.Classes
         /// <summary>
         /// Тег класса
         /// </summary>
-        public string TagClass { get; set; }
+        public string TagClass { get; set; } = Tag;
 
         /// <summary>
         /// ID Сотрудника
         /// </summary>
-        public string ID_employee;
+        public string ID_employee { get; set; } = string.Empty;
 
         /// <summary>
         /// Фамилия сотрудника
         /// </summary>
-        public string SurnameEmployee { get; set; }
+        public string SurnameEmployee { get; set; } = string.Empty;
 
         /// <summary>
         /// Имя сотрудника
         /// </summary>
-        public string NameEmployee { get; set; }
+        public string NameEmployee { get; set; } = string.Empty;
 
         /// <summary>
         /// Отчество сотрудника
         /// </summary>
-        public string PatronymicEmployee { get; set; }
+        public string PatronymicEmployee { get; set; } = string.Empty;
 
         /// <summary>
         /// Отдел в котором числится сотрудник
         /// </summary>
-        public string DepartmentEmployee { get; set; }
+        public string DepartmentEmployee { get; set; } = string.Empty;
 
         /// <summary>
         /// Дата приема на работу нового сотрудника
         /// </summary>
-        public string DateAdmissionEmployee { get; set; } 
+        public string DateAdmissionEmployee { get; set; } = string.Empty;
 
         /// <summary>
         /// Дата увольнения сотрудника
         /// </summary>
-        public string DateDismissalEmployee { get; set; }
+        public string DateDismissalEmployee { get; set; } = string.Empty;
+
+
+        public EmployeeAsCsv() 
+        { 
+
+        }
 
         public EmployeeAsCsv(string TagClass,
                              string ID_employee,
@@ -69,6 +75,13 @@ namespace PersonnelSystem.Classes
 
             this.DateAdmissionEmployee = DateAdmissionEmployee;
             this.DateDismissalEmployee = DateDismissalEmployee;
+        }
+
+        static public int GetCountProperties()
+        {
+            EmployeeAsCsv employeeAsCsv = new EmployeeAsCsv();
+            var countField = employeeAsCsv.GetType().GetProperties().Length;
+            return countField;
         }
     }
 }

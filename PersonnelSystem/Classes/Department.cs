@@ -26,6 +26,21 @@ namespace PersonnelSystem.Classes
         public List<Department> ListDepartments { get; set; } = new List<Department>();
 
         /// <summary>
+        /// Список отделов для чтения из CSV
+        /// </summary>
+        public string DepartmentsString { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Родительский отдел
+        /// </summary>
+        public Department? ParentDepartment { get; set; }
+
+        /// <summary>
+        /// Родительский отдел для чтения из CSV
+        /// </summary>
+        public string ParentDepartmentString { get; set; } = string.Empty;
+
+        /// <summary>
         /// Тип отдела
         /// </summary>
         public TypeDepartments TypeDepartment { get; set; } = TypeDepartments.Subordinate;
@@ -44,7 +59,14 @@ namespace PersonnelSystem.Classes
         /// </summary>
         public List<Employee> ListEmployees { get; set; } = new List<Employee>();
 
-        public Department(string TagClass, string Id_department, string NameDepartment, string DepartmentsString, string TypeDepartment, List<Employee> ListEmployees)
+
+        public Department(string TagClass,
+                          string Id_department,
+                          string NameDepartment,
+                          string DepartmentsString,
+                          string ParentDepartmentString,
+                          string TypeDepartment,
+                          List<Employee> ListEmployees)
         {
             this.TagClass = TagClass;
 
@@ -54,7 +76,8 @@ namespace PersonnelSystem.Classes
                 this.Id_department = 0;
 
             this.NameDepartment = NameDepartment;
-            //this.DepartmentsArray = DepartmentsString.Split(",").ToArray();
+            this.DepartmentsString = DepartmentsString;
+            this.ParentDepartmentString = ParentDepartmentString;
 
             if (int.TryParse(TypeDepartment, out int typeDepartment))
                 this.TypeDepartment = (TypeDepartments)typeDepartment;
@@ -74,14 +97,8 @@ namespace PersonnelSystem.Classes
                 this.Id_department = 0;
 
             this.NameDepartment = departmentAsCsv.NameDepartment;
-
-
-            //foreach (var item in departmentAsCsv.DepartmentsString.Split(",").ToArray())
-            //{
-            //    this.ListDepartments.Add(item);
-            //}
-            //this.DepartmentsArray = DepartmentsString.Split(",").ToArray();
-
+            this.DepartmentsString = departmentAsCsv.DepartmentsString;
+            this.ParentDepartmentString = departmentAsCsv.ParentDepartmentString;
 
             if (int.TryParse(departmentAsCsv.TypeDepartment, out int typeDepartment))
                 this.TypeDepartment = (TypeDepartments)typeDepartment;

@@ -1,9 +1,14 @@
-TagClass;Id_department;NameDepartment;DepartmentsArray;TypeDepartments
+TagClass;Id_department;NameDepartment;DepartmentsString;ParentDepartmentString;TypeDepartments
 TagClass;ID_employee;SurnameEmployee;NameEmployee;PatronymicEmployee;DepartmentEmployee;DateAdmissionEmployee;DateDismissalEmployee
-Department;1;Кадры;2;1;
+
+Department;1;Главный отдел;2;;1
 Employee;1;Первых;Иван;Чачевич;1;20.01.2012;23.01.2013
 Employee;3;Вареных;Кирилл;Саевич;1;10.01.2012;
 Employee;4;Дубных;Николай;Стрекоткин;1;24.02.2012;
-Department;2;Разрабы;;2;
+
+Department;2;Разработчики;;1;2
 Employee;2;Смирнов;Иван;Иванович;2;22.01.2012;
-Employee;5;Козлов;Петр;Кириллович;2;;
+Employee;5;Козлов;Петр;Кириллович;2;22.02.2011;
+
+Employee;5;Козлов;Петр;Кириллович
+
