@@ -306,13 +306,13 @@ namespace PersonnelSystem
 
         private void ChangeEmployeeCommand_Execute(object? parameter)
         {
-            TextInsertCurentEmployee(CurrentEmployee);
+            TextInsertCurrentEmployee(CurrentEmployee);
         }
 
         /// <summary>
         /// Заполнение данными экземпляр класса сотрудники
         /// </summary>
-        public void TextInsertCurentEmployee(Employee? employee)
+        public void TextInsertCurrentEmployee(Employee? employee)
         {
             if (employee == null)
                 return;
@@ -353,25 +353,36 @@ namespace PersonnelSystem
                 if (csvReader == null) 
                     return;
 
-                while (csvReader!.Read())
+                var countPropertiesInDepartment = DepartmentAsCsv.GetCountProperties(); 
+                var countPropertiesInEmployee = EmployeeAsCsv.GetCountProperties();
+
+                while (csvReader.Read())
                 {
-                    string? stringReader = csvReader?.GetField(0);
+                    string stringReader = csvReader.GetField(0);
 
                     switch (stringReader)
                     {
                         case DepartmentAsCsv.Tag:
-                            var departmentAsCsv = csvReader!.GetRecord<DepartmentAsCsv>();
+
+                            if (csvReader.ColumnCount != countPropertiesInDepartment)
+                                continue;
+
+                            var departmentAsCsv = csvReader.GetRecord<DepartmentAsCsv>();
 
                             ListDepartmentsAsCsv.Add(new DepartmentAsCsv(
                                 TagClass: departmentAsCsv.TagClass,
                                 Id_department: departmentAsCsv.Id_department,
                                 NameDepartment: departmentAsCsv.NameDepartment,
                                 DepartmentsString: departmentAsCsv.DepartmentsString,
-                                TypeDepartment: departmentAsCsv.TypeDepartment,
-                                ListEmployees: departmentAsCsv.ListEmployees));
+                                ParentDepartmentString: departmentAsCsv.ParentDepartmentString,
+                                TypeDepartment: departmentAsCsv.TypeDepartment));
                             break;
 
                         case EmployeeAsCsv.Tag:
+
+                            if (csvReader.ColumnCount != countPropertiesInEmployee)
+                                continue;
+
                             var employeesAsCsv = csvReader!.GetRecord<EmployeeAsCsv>();
 
                             ListEmployeesAsCsv.Add(new EmployeeAsCsv(
@@ -415,8 +426,18 @@ namespace PersonnelSystem
                 // Лист сотрудниками для конкретного отдела 
                 department.ListEmployees = ListEmployees.Where(x => int.Parse(x.DepartmentEmployeeString) == department.Id_department).ToList<Employee>();
 
-                // переделать!!!!!!!!! Подумать
+                //Запись в свойства отдела его родительский отдел
+                department.ParentDepartment = ListDepartments.FirstOrDefault(x => x.Id_department.ToString() == department.ParentDepartmentString, null);
 
+                // Добавление дочерних отделов в главный отдел
+                var numbersDepartments = department.DepartmentsString.Split(",");
+
+                foreach (var number in numbersDepartments)
+                {
+                    department.ListDepartments = ListDepartments.Where(x => x.Id_department.ToString() == number.ToString()).ToList();
+                }
+
+                // переделать!!!!!!!!! 
                 foreach (var employee in department.ListEmployees)
                 {
                     employee.DepartmentEmployee = department;

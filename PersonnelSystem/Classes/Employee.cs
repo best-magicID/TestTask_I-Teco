@@ -87,7 +87,7 @@ namespace PersonnelSystem.Classes
             if (DateTime.TryParse(employeesAsCsv.DateAdmissionEmployee, out DateTime dateAdmissionEmployee))
                 this.DateAdmissionEmployee = dateAdmissionEmployee;
             else
-                this.DateAdmissionEmployee = DateTime.Now;
+                this.DateAdmissionEmployee = DateTime.Now.Date;
 
             if (DateTime.TryParse(employeesAsCsv.DateDismissalEmployee, out DateTime dateDismissalEmployee))
                 this.DateDismissalEmployee = dateDismissalEmployee;
