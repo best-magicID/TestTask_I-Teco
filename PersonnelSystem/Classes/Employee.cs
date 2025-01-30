@@ -57,7 +57,7 @@ namespace PersonnelSystem.Classes
 
         }
 
-        public Employee(string TagClass, int ID_employee, string SurnameEmployee, string NameEmployee,  string PatronymicEmployee, Department DepartmentEmployee, DateTime DateAdmissionEmployee, DateTime? DateDismissalEmployee = null)
+        public Employee(string TagClass, int ID_employee, string SurnameEmployee, string NameEmployee,  string PatronymicEmployee, Department? DepartmentEmployee, DateTime DateAdmissionEmployee, DateTime? DateDismissalEmployee = null)
         {
             this.TagClass = TagClass;
             this.ID_employee = ID_employee;
@@ -88,6 +88,33 @@ namespace PersonnelSystem.Classes
                 this.DateAdmissionEmployee = dateAdmissionEmployee;
             else
                 this.DateAdmissionEmployee = DateTime.Now;
+
+            if (DateTime.TryParse(employeesAsCsv.DateDismissalEmployee, out DateTime dateDismissalEmployee))
+                this.DateDismissalEmployee = dateDismissalEmployee;
+            else
+                this.DateDismissalEmployee = null;
         }
+
+        /// <summary>
+        /// Проверка, есть ли одинаковые сотрудники
+        /// </summary>
+        public static bool CheckingFieldEquality(Employee employee1, Employee employee2)
+        {
+            if(employee1 == employee2) 
+                return true;
+
+            else if(employee1.TagClass == employee2.TagClass &&
+                    employee1.SurnameEmployee == employee2.SurnameEmployee &&
+                    employee1.NameEmployee == employee2.NameEmployee &&
+                    employee1.PatronymicEmployee == employee2.PatronymicEmployee &&
+                    employee1.DepartmentEmployee == employee2.DepartmentEmployee &&
+                    employee1.DateAdmissionEmployee.Date == employee2.DateAdmissionEmployee.Date)
+            {
+                return true;
+            }
+            else
+                return false;
+        }
+
     }
 }

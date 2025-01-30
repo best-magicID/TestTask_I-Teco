@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 
 namespace PersonnelSystem
@@ -44,6 +45,8 @@ namespace PersonnelSystem
         public RaiseCommand AddEmployeeCommand {  get; set; }
         public RaiseCommand NewEmployeeCommand {  get; set; }
         public RaiseCommand DeleteEmployeeCommand { get; set; }
+        public RaiseCommand DismissEmployeeCommand {  get; set; }
+        public RaiseCommand ChangeEmployeeCommand { get; set; }
 
 
         private string _SurnameEmployee = string.Empty;
@@ -52,11 +55,8 @@ namespace PersonnelSystem
             get => _SurnameEmployee;
             set
             {
-                if (_SurnameEmployee != value)
-                {
-                    _SurnameEmployee = value;
-                    OnPropertyChanged(nameof(SurnameEmployee));
-                }
+                _SurnameEmployee = value;
+                OnPropertyChanged(nameof(SurnameEmployee));
             }
         }
 
@@ -66,11 +66,8 @@ namespace PersonnelSystem
             get => _NameEmployee;
             set
             {
-                if (_NameEmployee != value)
-                {
-                    _NameEmployee = value;
-                    OnPropertyChanged(nameof(NameEmployee));
-                }
+                _NameEmployee = value;
+                OnPropertyChanged(nameof(NameEmployee));
             }
         }
 
@@ -80,32 +77,55 @@ namespace PersonnelSystem
             get => _PatronymicEmployee;
             set
             {
-                if (_PatronymicEmployee != value)
-                {
-                    _PatronymicEmployee = value;
-                    OnPropertyChanged(nameof(PatronymicEmployee));
-                }
+                _PatronymicEmployee = value;
+                OnPropertyChanged(nameof(PatronymicEmployee));
             }
         }
 
-        private Department _DepartmentEmployee;
-        public Department DepartmentEmployee
+        private Department? _DepartmentEmployee;
+        public Department? DepartmentEmployee
         {
             get => _DepartmentEmployee;
             set
             {
-                if (_DepartmentEmployee != value)
-                {
-                    _DepartmentEmployee = value;
-                    OnPropertyChanged(nameof(DepartmentEmployee));
-                }
+                _DepartmentEmployee = value;
+                OnPropertyChanged(nameof(DepartmentEmployee));
             }
         }
 
         /// <summary>
+        /// Дата приема на работу нового сотрудника
+        /// </summary>
+        public DateTime? DateAdmissionEmployee
+        {
+            get => _DateAdmissionEmployee;
+            set
+            {
+                _DateAdmissionEmployee = value;
+                OnPropertyChanged(nameof(DateAdmissionEmployee));
+            }
+        }
+        public DateTime? _DateAdmissionEmployee;
+
+        /// <summary>
+        /// Дата увольнения сотрудника
+        /// </summary>
+        public DateTime? DateDismissalEmployee 
+        {
+            get => _DateDismissalEmployee;
+            set
+            {
+                _DateDismissalEmployee = value;
+                OnPropertyChanged(nameof(DateDismissalEmployee));
+            }
+        }
+        private DateTime? _DateDismissalEmployee;
+
+
+        /// <summary>
         /// Выбранный сотрудник
         /// </summary>
-        public Employee CurrentEmployee
+        public Employee? CurrentEmployee
         {
             get => _CurrentEmployee;
             set
@@ -114,7 +134,7 @@ namespace PersonnelSystem
                 OnPropertyChanged(nameof(CurrentEmployee));
             }
         }
-        private Employee _CurrentEmployee;
+        private Employee? _CurrentEmployee;
 
         #endregion
 
@@ -154,17 +174,26 @@ namespace PersonnelSystem
         {
             ReadCsvFileCommand = new RaiseCommand(ReadCsvFileCommand_Execute);
             AddEmployeeCommand = new RaiseCommand(AddEmployeeCommand_Execute, AddEmployeeCommand_CanExecute);
-            NewEmployeeCommand = new RaiseCommand(NewEmployeeCommand_Execute);
+            NewEmployeeCommand = new RaiseCommand(NewEmployeeCommand_Execute, NewEmployeeCommand_CanExecute);
+            DismissEmployeeCommand = new RaiseCommand(DismissEmployeeCommand_Execute, DismissEmployeeCommand_CanExecute);
+            DeleteEmployeeCommand = new RaiseCommand(DeleteEmployeeCommand_Execute, DeleteEmployeeCommand_CanExecute);
+            ChangeEmployeeCommand = new RaiseCommand(ChangeEmployeeCommand_Execute, ChangeEmployeeCommand_CanExecute);
         }
 
+        /// <summary>
+        /// Проверка, перед Добавлением нового сотрудника
+        /// </summary>
         private bool AddEmployeeCommand_CanExecute(object? parameter)
         {
-            return CheckField();
+            return CurrentEmployee == null && CheckField();
         }
 
+        /// <summary>
+        /// Добавление нового сотрудника
+        /// </summary>
         private void AddEmployeeCommand_Execute(object? parameter)
         {
-            var countEmployee = ListEmployees.Count + 1;
+            var countEmployee = ListEmployees.Count;
 
             Employee employee = new Employee(TagClass: EmployeeAsCsv.Tag,
                                             ID_employee: countEmployee,
@@ -172,13 +201,23 @@ namespace PersonnelSystem
                                             NameEmployee: NameEmployee,
                                             PatronymicEmployee: PatronymicEmployee,
                                             DepartmentEmployee: DepartmentEmployee,
-                                            DateAdmissionEmployee: DateTime.Now.Date,
-                                            DateDismissalEmployee: null);
+                                            DateAdmissionEmployee: DateAdmissionEmployee ?? DateTime.Now.Date,
+                                            DateDismissalEmployee: DateDismissalEmployee);
+
+            if (ListEmployees.Any(x => Employee.CheckingFieldEquality(x, employee)))
+            {
+                MessageBox.Show("Данный сотрудник уже есть в списке", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            employee.ID_employee ++;
 
             ListEmployees.Add(employee);
             ListDepartments.First(x => x == employee.DepartmentEmployee).ListEmployees.Add(employee);
         }
 
+        /// <summary>
+        /// Проверка полей на заполнение
+        /// </summary>
         public bool CheckField()
         {
             if(string.IsNullOrEmpty(TextBoxSurnameEmployee.Text))
@@ -201,7 +240,91 @@ namespace PersonnelSystem
 
         public void NewEmployeeCommand_Execute(object? parameter)
         {
-            ClearTextInControl();
+            ClearTextInControls();
+            CurrentEmployee = null;
+            DataGridEmployee.SelectedItem = null;
+        }
+
+        private bool NewEmployeeCommand_CanExecute(object? parameter)
+        {
+            return CheckField();
+        }
+
+        /// <summary>
+        /// Уволить сотрудника
+        /// </summary>
+        private void DismissEmployeeCommand_Execute(object? parameter)
+        {
+            ListEmployees.First(x => x == CurrentEmployee).DateDismissalEmployee = DateDismissalEmployee;
+
+            var text = string.Format($"Сотрудник: {SurnameEmployee} {NameEmployee} {PatronymicEmployee} \r\n" +
+                                    $"Принят: {DateAdmissionEmployee.Value.ToShortDateString()}\r\n" +
+                                    $"Уволен: {DateDismissalEmployee.Value.ToShortDateString()}");
+            
+            MessageBox.Show($"{text}", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            //DataGridEmployee.UpdateLayout();
+            CollectionViewSource.GetDefaultView(ListEmployees.First(x => x == CurrentEmployee));
+            //CollectionViewSource.GetDefaultView(ListDepartments);
+        }
+
+        /// <summary>
+        /// Проверка для команды, уволить сотрудника
+        /// </summary>
+        private bool DismissEmployeeCommand_CanExecute(object? parameter)
+        {
+            if (CurrentEmployee != null && CurrentEmployee.DateDismissalEmployee == null && DateDismissalEmployee != null)
+            {
+                return true;
+            }
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Выполнить команду, Удалить сотрудника
+        /// </summary>
+        private void DeleteEmployeeCommand_Execute(object? parameter)
+        {
+            ListEmployees.Remove(CurrentEmployee!);
+            ListDepartments.First(x => x.ListEmployees.Remove(CurrentEmployee!));
+            CurrentEmployee = null;
+        }
+
+        /// <summary>
+        /// Проверка для команды, удалить сотрудника
+        /// </summary>
+        private bool DeleteEmployeeCommand_CanExecute(object? parameter)
+        {
+            return CurrentEmployee != null;
+        }
+
+        private bool ChangeEmployeeCommand_CanExecute(object? parameter)
+        {
+            return CurrentEmployee != null;
+        }
+
+        private void ChangeEmployeeCommand_Execute(object? parameter)
+        {
+            TextInsertCurentEmployee(CurrentEmployee);
+        }
+
+        /// <summary>
+        /// Заполнение данными экземпляр класса сотрудники
+        /// </summary>
+        public void TextInsertCurentEmployee(Employee? employee)
+        {
+            if (employee == null)
+                return;
+
+            employee.SurnameEmployee = SurnameEmployee;
+            employee.NameEmployee = NameEmployee;
+            employee.PatronymicEmployee = PatronymicEmployee;
+
+            employee.DepartmentEmployee = DepartmentEmployee;
+
+            employee.DateAdmissionEmployee = DateAdmissionEmployee ?? employee.DateAdmissionEmployee;
+            employee.DateDismissalEmployee = DateDismissalEmployee;
         }
 
         /// <summary>
@@ -292,16 +415,13 @@ namespace PersonnelSystem
                 // Лист сотрудниками для конкретного отдела 
                 department.ListEmployees = ListEmployees.Where(x => int.Parse(x.DepartmentEmployeeString) == department.Id_department).ToList<Employee>();
 
+                // переделать!!!!!!!!! Подумать
+
                 foreach (var employee in department.ListEmployees)
                 {
                     employee.DepartmentEmployee = department;
                 }
             }
-
-            TreeViewDepartments.ItemsSource = ListDepartments;
-            ComboBoxListDepartment.ItemsSource = ListDepartments;
-            //ListViewEmployees.ItemsSource = ListEmployees;
-            DataGridEmployee.ItemsSource = ListEmployees;
         }
 
         /// <summary>
@@ -315,8 +435,9 @@ namespace PersonnelSystem
             if (department is null)
                 return;
 
+            CurrentEmployee = null;
             ListEmployees.Clear();
-            ClearTextInControl();
+            ClearTextInControls();
 
             foreach (var item in department.ListEmployees)
             {
@@ -333,9 +454,9 @@ namespace PersonnelSystem
             ListDepartmentsAsCsv.Clear();
             ListEmployees.Clear();
             ListEmployeesAsCsv.Clear();
-        }
 
-        #endregion
+            CurrentEmployee = null;
+        }
 
         /// <summary>
         /// Выбор сотрудника из списка
@@ -350,7 +471,7 @@ namespace PersonnelSystem
 
             FillFields(employee);
 
-            //CurrentEmployee = employee;
+            CurrentEmployee = employee;
         }
 
         /// <summary>
@@ -363,12 +484,15 @@ namespace PersonnelSystem
             this.PatronymicEmployee = employee.PatronymicEmployee;
 
             this.DepartmentEmployee = employee.DepartmentEmployee;
+
+            this.DateAdmissionEmployee = employee.DateAdmissionEmployee;
+            this.DateDismissalEmployee = employee.DateDismissalEmployee;
         }
 
         /// <summary>
         /// Очистка контролов
         /// </summary>
-        public void ClearTextInControl()
+        public void ClearTextInControls()
         {
             TextBoxSurnameEmployee.Text = string.Empty;
             TextBoxNameEmployee.Text = string.Empty;
@@ -377,6 +501,8 @@ namespace PersonnelSystem
             DatePickerAdmissionEmployee.Text = string.Empty;
             DatePickerDismissalEmployee.Text = string.Empty;
         }
+
+        #endregion
 
     } //END
 }
