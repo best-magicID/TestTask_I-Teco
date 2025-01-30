@@ -17,6 +17,16 @@
             <Setter Property="Control.Margin" 
                     Value="2.5" />
         </Style>
+        <Style x:Key="ForMainButton">
+            <Setter Property="Control.Margin"
+                    Value="2.5" />
+            <Setter Property="Control.Padding"
+                    Value="2.5"/>
+            <Setter Property="Control.Width"
+                    Value="Auto"/>
+            <Setter Property="Control.Height"
+                    Value="30"/>
+        </Style>
     </Window.Resources>
     
     <Grid Margin="5">
@@ -93,7 +103,7 @@
                       Grid.Row="3"
                       Grid.Column="1"
                       Style="{StaticResource MarginForControl}"
-                      ItemsSource="{Binding ListDepartments}"
+                      ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -110,7 +120,9 @@
                         Width="300"
                         Grid.Row="4"
                         Grid.Column="1"
-                        Style="{StaticResource MarginForControl}"/>
+                        Style="{StaticResource MarginForControl}"
+                        
+                        SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Дата увольнения"
                        Grid.Row="5"
@@ -120,7 +132,8 @@
                         Width="300"
                         Grid.Row="5"
                         Grid.Column="1"
-                        Style="{StaticResource MarginForControl}"/>
+                        Style="{StaticResource MarginForControl}"
+                        SelectedDate="{Binding DateDismissalEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal"
@@ -129,17 +142,28 @@
                     Style="{StaticResource MarginForControl}">
             <Button x:Name="ButtonNewEmployee"
                     Content="Новый сотрудник"
-                    Width="150"
-                    Height="30"
-                    Style="{StaticResource MarginForControl}"
+                    Style="{StaticResource ForMainButton}"
                     Command="{Binding NewEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             
             <Button x:Name="ButtonAddEmployee"
                     Content="Добавить сотрудника"
-                    Width="150"
-                    Height="30"
-                    Style="{StaticResource MarginForControl}"
+                    Style="{StaticResource ForMainButton}"
                     Command="{Binding AddEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+            <Button x:Name="ButtonChangeEmployee"
+                    Content="Изменить данные сотрудника"
+                    Style="{StaticResource ForMainButton}"
+                    Command="{Binding ChangeEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+            <Button x:Name="ButtonDissionEmployee"
+                    Content="Уволить сотрудника"
+                    Style="{StaticResource ForMainButton}"
+                    Command="{Binding DismissEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+            <Button x:Name="ButtonDeleteEmployee"
+                    Content="Удалить сотрудника"
+                    Style="{StaticResource ForMainButton}"
+                    Command="{Binding DeleteEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
         </StackPanel>
         
 
@@ -151,10 +175,11 @@
 
             <DataGrid x:Name="DataGridEmployee"
                       Style="{StaticResource MarginForControl}"
-                      ItemsSource="{Binding ListEmployees}" 
+                      ItemsSource="{Binding ListEmployees, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}" 
                       AutoGenerateColumns="False" 
                       CurrentCellChanged="DataGridEmployee_CurrentCellChanged"
-                      >
+                      CanUserAddRows="False"
+                      IsReadOnly="False" >
                 
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Фамилия" 
@@ -181,7 +206,7 @@
             
             <!--<ListView x:Name="ListViewEmployees" 
                       Style="{StaticResource MarginForControl}"
-                      ItemsSource="{Binding ListEmployees}" >
+                      ItemsSource="{Binding ListEmployees, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}" >
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -228,7 +253,7 @@
             <TreeView x:Name="TreeViewDepartments" 
                       
                       Height="Auto"
-                      ItemsSource="{Binding ListDepartments}"
+                      ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Path=Nodes}">
