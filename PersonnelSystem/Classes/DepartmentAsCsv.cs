@@ -66,6 +66,15 @@ namespace PersonnelSystem.Classes
             this.TypeDepartment = TypeDepartment;
         }
 
+        public DepartmentAsCsv(Department department)
+        {
+            this.TagClass= department.TagClass;
+            this.Id_department = department.Id_department.ToString();
+            this.NameDepartment= department.NameDepartment.ToString();
+            this.DepartmentsString = string.Join(",", department.ListDepartments.Select(x => x.Id_department));
+            this.ParentDepartmentString = department.ParentDepartment?.Id_department.ToString() ?? string.Empty;
+            this.TypeDepartment = department.TypeDepartment.ToString();
+        }
 
         static public int GetCountProperties()
         {

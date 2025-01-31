@@ -42,8 +42,9 @@
 
         <!--Правая половина-->
         
-        <Grid Grid.Column="1"
-                Grid.Row="0">
+        <Grid x:Name="GridInput" 
+              Grid.Column="1"
+              Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -237,29 +238,37 @@
             <StackPanel Orientation="Vertical"
                         DockPanel.Dock="Top"
                         Style="{StaticResource MarginForControl}">
-                <Button Content="Загрузить информацию из CSV файла"
+                <Button Content="Загрузить данные из CSV файла"
                         Command="{Binding Path=ReadCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                         Style="{StaticResource MarginForControl}" 
                         Width="Auto"/>
 
-                <Button Content="Показать список отделов"
+                <Button Content="Сохранить данные в CSV файл"
                         Style="{StaticResource MarginForControl}" 
-                        Width="Auto"/>
+                        Width="Auto"
+                        Command="{Binding SaveCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             </StackPanel >
 
             <TextBlock Text="Список отделов" 
                        DockPanel.Dock="Top"
                        Style="{StaticResource MarginForControl}"/>
+            
             <TreeView x:Name="TreeViewDepartments" 
                       Height="Auto"
                       ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Path=Nodes}">
+                    <HierarchicalDataTemplate ItemsSource="{Binding Path=ListDepartments}" >
                         <TextBlock Text="{Binding NameDepartment}" />
+                        <HierarchicalDataTemplate.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding NameDepartment}" />
+                            </DataTemplate>
+                        </HierarchicalDataTemplate.ItemTemplate>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
+            
         </DockPanel>
         
     </Grid>
