@@ -77,6 +77,21 @@ namespace PersonnelSystem.Classes
             this.DateDismissalEmployee = DateDismissalEmployee;
         }
 
+        public EmployeeAsCsv(Employee employee)
+        {
+            this.TagClass = employee.TagClass;
+            this.ID_employee = employee.ID_employee.ToString();
+            
+            this.SurnameEmployee = employee.SurnameEmployee;
+            this.NameEmployee = employee.NameEmployee;
+            this.PatronymicEmployee = employee.PatronymicEmployee;
+
+            this.DepartmentEmployee = employee.DepartmentEmployee?.Id_department.ToString() ?? string.Empty;
+
+            this.DateAdmissionEmployee = employee.DateAdmissionEmployee.ToShortDateString();
+            this.DateDismissalEmployee = employee.DateDismissalEmployee?.ToShortDateString() ?? string.Empty;
+        }
+
         static public int GetCountProperties()
         {
             EmployeeAsCsv employeeAsCsv = new EmployeeAsCsv();

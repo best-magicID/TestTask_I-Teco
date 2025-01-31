@@ -1,7 +1,7 @@
 TagClass;Id_department;NameDepartment;DepartmentsString;ParentDepartmentString;TypeDepartments
 TagClass;ID_employee;SurnameEmployee;NameEmployee;PatronymicEmployee;DepartmentEmployee;DateAdmissionEmployee;DateDismissalEmployee
 
-Department;1;Главный отдел;2;;1
+Department;1;Главный отдел;2;0;1
 Employee;1;Первых;Иван;Чачевич;1;20.01.2012;23.01.2013
 Employee;3;Вареных;Кирилл;Саевич;1;10.01.2012;
 Employee;4;Дубных;Николай;Стрекоткин;1;24.02.2012;

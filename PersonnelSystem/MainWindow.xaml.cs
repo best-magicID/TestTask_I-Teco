@@ -4,13 +4,13 @@ using Microsoft.Win32;
 using PersonnelSystem.Classes;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 
 namespace PersonnelSystem
 {
@@ -42,16 +42,17 @@ namespace PersonnelSystem
         public List<EmployeeAsCsv> ListEmployeesAsCsv { get; set; } = new List<EmployeeAsCsv>();
 
         public RaiseCommand ReadCsvFileCommand { get; set; }
-        public RaiseCommand AddEmployeeCommand {  get; set; }
-        public RaiseCommand NewEmployeeCommand {  get; set; }
+        public RaiseCommand SaveCsvFileCommand { get; set; }
+        public RaiseCommand AddEmployeeCommand { get; set; }
+        public RaiseCommand NewEmployeeCommand { get; set; }
         public RaiseCommand DeleteEmployeeCommand { get; set; }
-        public RaiseCommand DismissEmployeeCommand {  get; set; }
+        public RaiseCommand DismissEmployeeCommand { get; set; }
         public RaiseCommand ChangeEmployeeCommand { get; set; }
 
 
         private string _SurnameEmployee = string.Empty;
-        public string SurnameEmployee 
-        { 
+        public string SurnameEmployee
+        {
             get => _SurnameEmployee;
             set
             {
@@ -110,7 +111,7 @@ namespace PersonnelSystem
         /// <summary>
         /// Дата увольнения сотрудника
         /// </summary>
-        public DateTime? DateDismissalEmployee 
+        public DateTime? DateDismissalEmployee
         {
             get => _DateDismissalEmployee;
             set
@@ -136,6 +137,11 @@ namespace PersonnelSystem
         }
         private Employee? _CurrentEmployee;
 
+        public const string NameFileCsv = "ListDepartment.csv";
+        public string Path = System.IO.Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileCsv;
+
+        public Department MainDepartment { get; set; }
+
         #endregion
 
         #region КОНСТРУКТОР
@@ -145,8 +151,14 @@ namespace PersonnelSystem
             InitializeComponent();
 
             LoadCommands();
+            CreateFirstNode();
 
-            ReadCsvFileCommand_Execute(null);
+            if (File.Exists(Path))
+            {
+                ClearAllList();
+                ReadCsvFile(Path);
+                ConvertListsCsvInLists();
+            }
         }
 
         #endregion
@@ -173,11 +185,27 @@ namespace PersonnelSystem
         public void LoadCommands()
         {
             ReadCsvFileCommand = new RaiseCommand(ReadCsvFileCommand_Execute);
+            SaveCsvFileCommand = new RaiseCommand(SaveCsvFileCommand_Execute);
             AddEmployeeCommand = new RaiseCommand(AddEmployeeCommand_Execute, AddEmployeeCommand_CanExecute);
             NewEmployeeCommand = new RaiseCommand(NewEmployeeCommand_Execute, NewEmployeeCommand_CanExecute);
             DismissEmployeeCommand = new RaiseCommand(DismissEmployeeCommand_Execute, DismissEmployeeCommand_CanExecute);
             DeleteEmployeeCommand = new RaiseCommand(DeleteEmployeeCommand_Execute, DeleteEmployeeCommand_CanExecute);
             ChangeEmployeeCommand = new RaiseCommand(ChangeEmployeeCommand_Execute, ChangeEmployeeCommand_CanExecute);
+        }
+
+        public void CreateFirstNode()
+        {
+            MainDepartment = new Department(
+                TagClass: DepartmentAsCsv.Tag,
+                Id_department: "0",
+                NameDepartment: "Отделы",
+                ListDepartments: null,
+                DepartmentsString: string.Empty,
+                ParentDepartment: null,
+                ParentDepartmentString: string.Empty,
+                TypeDepartment: "Main",
+                ListEmployees: null
+                );
         }
 
         /// <summary>
@@ -238,6 +266,9 @@ namespace PersonnelSystem
             return true;
         }
 
+        /// <summary>
+        /// Выполнить команду, Очистить поля для заполнения нового сотрудника 
+        /// </summary>
         public void NewEmployeeCommand_Execute(object? parameter)
         {
             ClearTextInControls();
@@ -245,6 +276,9 @@ namespace PersonnelSystem
             DataGridEmployee.SelectedItem = null;
         }
 
+        /// <summary>
+        /// Проверка команды, перед отчищением полей
+        /// </summary>
         private bool NewEmployeeCommand_CanExecute(object? parameter)
         {
             return CheckField();
@@ -299,11 +333,17 @@ namespace PersonnelSystem
             return CurrentEmployee != null;
         }
 
+        /// <summary>
+        /// Проверка для команды, Изменить данные сотрудника
+        /// </summary>
         private bool ChangeEmployeeCommand_CanExecute(object? parameter)
         {
             return CurrentEmployee != null;
         }
 
+        /// <summary>
+        /// Выполнить команду, Изменить данные сотрудника
+        /// </summary>
         private void ChangeEmployeeCommand_Execute(object? parameter)
         {
             TextInsertCurrentEmployee(CurrentEmployee);
@@ -338,33 +378,54 @@ namespace PersonnelSystem
             if (openFileDialog.FileName == string.Empty)
                 return;
 
-            using var streamReader = new StreamReader(openFileDialog.FileName, Encoding.UTF8);
-           
+            ClearAllList();
+
+            ReadCsvFile(openFileDialog.FileName);
+            
+            ConvertListsCsvInLists();
+        }
+
+        /// <summary>
+        /// Чтение CSV файла
+        /// </summary>
+        public void ReadCsvFile(string pathFile)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            StreamReader streamReader;
+            try
+            {
+                streamReader = new StreamReader(pathFile, Encoding.GetEncoding(1251));
+            }
+            catch 
+            {
+                 streamReader = new StreamReader(pathFile, Encoding.UTF8);
+            }
+
             var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = false,
                 Delimiter = ";"
             };
 
-            ClearAllList();
 
             using (CsvReader? csvReader = new CsvReader(streamReader, csvConfig))
             {
-                if (csvReader == null) 
+                if (csvReader == null)
                     return;
 
-                var countPropertiesInDepartment = DepartmentAsCsv.GetCountProperties(); 
+                var countPropertiesInDepartment = DepartmentAsCsv.GetCountProperties();
                 var countPropertiesInEmployee = EmployeeAsCsv.GetCountProperties();
 
                 while (csvReader.Read())
                 {
-                    string stringReader = csvReader.GetField(0);
+                    string stringReader = csvReader.GetField(0) ?? string.Empty;
 
                     switch (stringReader)
                     {
                         case DepartmentAsCsv.Tag:
 
-                            if (csvReader.ColumnCount != countPropertiesInDepartment)
+                            if (csvReader.ColumnCount < countPropertiesInDepartment)
                                 continue;
 
                             var departmentAsCsv = csvReader.GetRecord<DepartmentAsCsv>();
@@ -380,7 +441,7 @@ namespace PersonnelSystem
 
                         case EmployeeAsCsv.Tag:
 
-                            if (csvReader.ColumnCount != countPropertiesInEmployee)
+                            if (csvReader.ColumnCount < countPropertiesInEmployee)
                                 continue;
 
                             var employeesAsCsv = csvReader!.GetRecord<EmployeeAsCsv>();
@@ -388,7 +449,7 @@ namespace PersonnelSystem
                             ListEmployeesAsCsv.Add(new EmployeeAsCsv(
                                 TagClass: employeesAsCsv.TagClass,
                                 ID_employee: employeesAsCsv.ID_employee,
-                                SurnameEmployee: employeesAsCsv.SurnameEmployee, 
+                                SurnameEmployee: employeesAsCsv.SurnameEmployee,
                                 NameEmployee: employeesAsCsv.NameEmployee,
                                 PatronymicEmployee: employeesAsCsv.PatronymicEmployee,
                                 DepartmentEmployee: employeesAsCsv.DepartmentEmployee,
@@ -401,8 +462,6 @@ namespace PersonnelSystem
                     }
                 }
             }
-
-            ConvertListsCsvInLists();
         }
 
         /// <summary>
@@ -410,6 +469,8 @@ namespace PersonnelSystem
         /// </summary>
         public void ConvertListsCsvInLists()
         {
+            //ListDepartments.Add(MainDepartment);
+
             foreach (var departmentsAsCsv in ListDepartmentsAsCsv)
             {
                 ListDepartments.Add(new Department(departmentsAsCsv));
@@ -427,22 +488,92 @@ namespace PersonnelSystem
                 department.ListEmployees = ListEmployees.Where(x => int.Parse(x.DepartmentEmployeeString) == department.Id_department).ToList<Employee>();
 
                 //Запись в свойства отдела его родительский отдел
-                department.ParentDepartment = ListDepartments.FirstOrDefault(x => x.Id_department.ToString() == department.ParentDepartmentString, null);
+                department.ParentDepartment = ListDepartments.FirstOrDefault(x => x?.Id_department.ToString() == department.ParentDepartmentString, null);
 
-                // Добавление дочерних отделов в главный отдел
-                var numbersDepartments = department.DepartmentsString.Split(",");
+                #region Добавление дочерних отделов в главный отдел
 
+                //var numbersDepartments = department.DepartmentsString.Split(",").ToArray();
+                var numbersDepartments = from dep in department.DepartmentsString.Split(",")
+                                         where int.TryParse(dep, out int depInt) 
+                                         select int.Parse(dep);
+                
                 foreach (var number in numbersDepartments)
                 {
-                    department.ListDepartments = ListDepartments.Where(x => x.Id_department.ToString() == number.ToString()).ToList();
+                    //department.ListDepartments = ListDepartments.Where(x => x.Id_department.ToString() == number.ToString()).ToList();
+                    department.ListDepartments = ListDepartments.Where(x => x.Id_department == number).ToList();
+                    //department.ListDepartments = from dep in ListDepartments
+                    //                             where int.TryParse(number, out int id)
+                    //                             select 
                 }
 
-                // переделать!!!!!!!!! 
+                #endregion
+
+                // Добавление в экземпляр класса Сотрудник его отдел
                 foreach (var employee in department.ListEmployees)
                 {
                     employee.DepartmentEmployee = department;
                 }
             }
+        }
+
+        /// <summary>
+        /// Выполнить команду, Сохранить данные в CSV файл
+        /// </summary>
+        private void SaveCsvFileCommand_Execute(object? parameter)
+        {
+            SaveCsvFile("Последовательное");
+        }
+
+        /// <summary>
+        /// Сохранение CSV файла
+        /// </summary>
+        public void SaveCsvFile(string? typeSaveCsv = "Последовательное")
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            using var writer = new StreamWriter(Path, false, Encoding.GetEncoding(1251));
+
+            var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                Delimiter = ";"
+            };
+
+            using (var csv = new CsvWriter(writer, csvConfig))
+            {
+                csv.WriteHeader<DepartmentAsCsv>();
+                csv.NextRecord();
+
+                foreach (var department in ListDepartments)
+                {
+                    csv.WriteRecord(new DepartmentAsCsv(department));
+                    csv.NextRecord();
+
+                    if(typeSaveCsv == "Чередующееся")
+                        foreach (var employee in department.ListEmployees)
+                        {
+                            csv.WriteRecord(new EmployeeAsCsv(employee));
+                            csv.NextRecord();
+                        }
+                }
+
+                if (typeSaveCsv == "Последовательное")
+                {
+                    csv.NextRecord(); // Отделить отделы от сотрудников
+                    csv.WriteHeader<EmployeeAsCsv>();
+                    csv.NextRecord();
+
+                    foreach (var employee in GetAllEmployees())
+                    {
+                        csv.WriteRecord(new EmployeeAsCsv(employee));
+                        csv.NextRecord();
+                    }
+                }
+            }
+
+            MessageBox.Show("Сохранение CSV завершено.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            OpenFolder();
         }
 
         /// <summary>
@@ -463,6 +594,22 @@ namespace PersonnelSystem
             foreach (var item in department.ListEmployees)
             {
                 ListEmployees.Add(item);
+            }
+        }
+
+        /// <summary>
+        /// Открытие папки с выделенным файлом после сохранения
+        /// </summary>
+        public void OpenFolder()
+        {
+            string exp = "C:\\Windows\\explorer.exe";
+            if (File.Exists(exp))
+            {
+                Process process = new Process();
+                process.StartInfo.UseShellExecute = true;
+                process.StartInfo.Arguments = $"/select, \"{@Path}\"";
+                process.StartInfo.FileName = exp;
+                process.Start();
             }
         }
 
@@ -523,7 +670,24 @@ namespace PersonnelSystem
             DatePickerDismissalEmployee.Text = string.Empty;
         }
 
+        /// <summary>
+        /// Получение списка всех сотрудников
+        /// </summary>
+        /// <returns></returns>
+        public dynamic GetAllEmployees()
+        {
+            var employees = from department in ListDepartments
+                            from employee in department.ListEmployees
+                            select employee;
+            return employees;
+        }
+
         #endregion
 
+        private void TreeViewDepartments_Expanded(object sender, RoutedEventArgs e)
+        {
+            var treeView = sender as TreeView;
+            var selected = treeView; 
+        }
     } //END
 }

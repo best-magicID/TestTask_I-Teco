@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace PersonnelSystem.Classes
@@ -23,7 +24,7 @@ namespace PersonnelSystem.Classes
         /// <summary>
         /// Подчиненные отделы
         /// </summary>
-        public List<Department> ListDepartments { get; set; } = new List<Department>();
+        public List<Department>? ListDepartments { get; set; } 
 
         /// <summary>
         /// Список отделов для чтения из CSV
@@ -50,23 +51,25 @@ namespace PersonnelSystem.Classes
         /// </summary>
         public enum TypeDepartments
         {
-            Main = 1,
-            Subordinate = 2
+            Main = 0,
+            Subordinate = 1
         };
 
         /// <summary>
         /// Список сотрудников
         /// </summary>
-        public List<Employee> ListEmployees { get; set; } = new List<Employee>();
+        public List<Employee>? ListEmployees { get; set; }
 
 
         public Department(string TagClass,
                           string Id_department,
                           string NameDepartment,
+                          ObservableCollection<Department>? ListDepartments,
                           string DepartmentsString,
+                          Department? ParentDepartment,
                           string ParentDepartmentString,
                           string TypeDepartment,
-                          List<Employee> ListEmployees)
+                          List<Employee>? ListEmployees)
         {
             this.TagClass = TagClass;
 
@@ -76,13 +79,15 @@ namespace PersonnelSystem.Classes
                 this.Id_department = 0;
 
             this.NameDepartment = NameDepartment;
+
+            this.ListDepartments = ListDepartments?.ToList();
             this.DepartmentsString = DepartmentsString;
+
+            this.ParentDepartment = ParentDepartment;
             this.ParentDepartmentString = ParentDepartmentString;
 
-            if (int.TryParse(TypeDepartment, out int typeDepartment))
-                this.TypeDepartment = (TypeDepartments)typeDepartment;
-            else
-                this.TypeDepartment = TypeDepartments.Subordinate;
+            if (TypeDepartments.TryParse(TypeDepartment, out TypeDepartments typeDepartment))
+                this.TypeDepartment = typeDepartment;
 
             this.ListEmployees = ListEmployees;
         }
@@ -100,10 +105,8 @@ namespace PersonnelSystem.Classes
             this.DepartmentsString = departmentAsCsv.DepartmentsString;
             this.ParentDepartmentString = departmentAsCsv.ParentDepartmentString;
 
-            if (int.TryParse(departmentAsCsv.TypeDepartment, out int typeDepartment))
-                this.TypeDepartment = (TypeDepartments)typeDepartment;
-            else
-                this.TypeDepartment = TypeDepartments.Subordinate;
+            if (TypeDepartments.TryParse(departmentAsCsv.TypeDepartment, out TypeDepartments typeDepartment))
+                this.TypeDepartment = typeDepartment;
         }
     }
 }
