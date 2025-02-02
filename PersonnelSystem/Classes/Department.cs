@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System.Collections.ObjectModel;
 
 namespace PersonnelSystem.Classes
 {
+    /// <summary>
+    /// Отдел
+    /// </summary>
     public class Department
     {
         /// <summary>
@@ -24,7 +25,7 @@ namespace PersonnelSystem.Classes
         /// <summary>
         /// Подчиненные отделы
         /// </summary>
-        public List<Department>? ListDepartments { get; set; } 
+        public ObservableCollection<Department> ListDepartments { get; set; } = new ObservableCollection<Department>();
 
         /// <summary>
         /// Список отделов для чтения из CSV
@@ -47,6 +48,12 @@ namespace PersonnelSystem.Classes
         public TypeDepartments TypeDepartment { get; set; } = TypeDepartments.Subordinate;
 
         /// <summary>
+        /// Список сотрудников
+        /// </summary>
+        public ObservableCollection<Employee> ListEmployees { get; set; } = new ObservableCollection<Employee>();
+
+
+        /// <summary>
         /// Список типов отделов
         /// </summary>
         public enum TypeDepartments
@@ -54,12 +61,6 @@ namespace PersonnelSystem.Classes
             Main = 0,
             Subordinate = 1
         };
-
-        /// <summary>
-        /// Список сотрудников
-        /// </summary>
-        public List<Employee>? ListEmployees { get; set; }
-
 
         public Department(string TagClass,
                           string Id_department,
@@ -69,7 +70,7 @@ namespace PersonnelSystem.Classes
                           Department? ParentDepartment,
                           string ParentDepartmentString,
                           string TypeDepartment,
-                          List<Employee>? ListEmployees)
+                          ObservableCollection<Employee>? ListEmployees)
         {
             this.TagClass = TagClass;
 
@@ -80,7 +81,7 @@ namespace PersonnelSystem.Classes
 
             this.NameDepartment = NameDepartment;
 
-            this.ListDepartments = ListDepartments?.ToList();
+            this.ListDepartments = ListDepartments != null ? ListDepartments : this.ListDepartments;
             this.DepartmentsString = DepartmentsString;
 
             this.ParentDepartment = ParentDepartment;
@@ -89,7 +90,7 @@ namespace PersonnelSystem.Classes
             if (TypeDepartments.TryParse(TypeDepartment, out TypeDepartments typeDepartment))
                 this.TypeDepartment = typeDepartment;
 
-            this.ListEmployees = ListEmployees;
+            this.ListEmployees = ListEmployees != null ? ListEmployees : this.ListEmployees;
         }
 
         public Department(DepartmentAsCsv departmentAsCsv)
@@ -107,6 +108,32 @@ namespace PersonnelSystem.Classes
 
             if (TypeDepartments.TryParse(departmentAsCsv.TypeDepartment, out TypeDepartments typeDepartment))
                 this.TypeDepartment = typeDepartment;
+        }
+
+        public Department(string TagClass,
+                          int Id_department,
+                          string NameDepartment,
+                          ObservableCollection<Department>? ListDepartments,
+                          Department? ParentDepartment,
+                          TypeDepartments TypeDepartment,
+                          ObservableCollection<Employee>? ListEmployees)
+        {
+            this.TagClass = TagClass;
+            this.Id_department = Id_department;
+            this.NameDepartment = NameDepartment;
+
+            this.ListDepartments = ListDepartments != null ? ListDepartments : this.ListDepartments;
+
+            if(ListDepartments != null)
+                this.DepartmentsString = string.Join(",", ListDepartments.Select(x => x.Id_department));
+
+            this.ParentDepartment = ParentDepartment;
+            if (ParentDepartment != null)
+                this.ParentDepartmentString = ParentDepartment.Id_department.ToString();
+
+            this.TypeDepartment = TypeDepartment;
+
+            this.ListEmployees = ListEmployees != null ? ListEmployees : this.ListEmployees;
         }
     }
 }

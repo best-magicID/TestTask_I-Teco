@@ -52,6 +52,7 @@ namespace PersonnelSystem.Classes
         /// </summary>
         public DateTime? DateDismissalEmployee { get; set; } = null;
 
+
         public Employee()
         {
 

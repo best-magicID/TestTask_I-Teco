@@ -92,6 +92,9 @@ namespace PersonnelSystem.Classes
             this.DateDismissalEmployee = employee.DateDismissalEmployee?.ToShortDateString() ?? string.Empty;
         }
 
+        /// <summary>
+        /// Получить количество свойств в классе
+        /// </summary>
         static public int GetCountProperties()
         {
             EmployeeAsCsv employeeAsCsv = new EmployeeAsCsv();

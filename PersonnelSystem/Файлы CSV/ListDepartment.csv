@@ -1,9 +1,9 @@
 TagClass;Id_department;NameDepartment;DepartmentsString;ParentDepartmentString;TypeDepartment
-Department;0;Отделы;1, 2,;;Subordinate
-Department;1;Главный отдел;2,3 ;0;Subordinate
-Department;2;Разработчики; ;0;Subordinate
-Department;3;Тестировщики;4 ;;Subordinate
-Department;4;Проектироввщики; ; ;Subordinate
+;0;Отделы;;;Main
+Department;1;Главный отдел; ;0;Subordinate
+Department;2;Разработчики; ;1;Subordinate
+Department;3;Тестировщики; ;1;Subordinate
+Department;4;Проектироввщики; ;3;Subordinate
 
 TagClass;ID_employee;SurnameEmployee;NameEmployee;PatronymicEmployee;DepartmentEmployee;DateAdmissionEmployee;DateDismissalEmployee
 Employee;1;Первых;Иван;Чачевич;1;20.01.2012;23.01.2013
