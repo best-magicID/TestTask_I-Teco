@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PersonnelSystem"
+        xmlns:addClass="clr-namespace:PersonnelSystem.Classes"
         
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=local:MainWindow}"
@@ -69,7 +70,7 @@
                      Grid.Row="0"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding SurnameEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                     Text="{Binding SurnameEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Имя"
                        Grid.Row="1"
@@ -81,7 +82,7 @@
                      Grid.Row="1"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding NameEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                     Text="{Binding NameEmployee, RelativeSource={RelativeSource Mode=FindAncestor,  AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Отчество"
                        Grid.Row="2"
@@ -93,7 +94,7 @@
                      Grid.Row="2"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding PatronymicEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                     Text="{Binding PatronymicEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Отдел"
                        Grid.Row="3"
@@ -104,8 +105,9 @@
                       Grid.Row="3"
                       Grid.Column="1"
                       Style="{StaticResource MarginForControl}"
-                      ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                      SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}">
+                      IsTextSearchEnabled="True"
+                      ItemsSource="{Binding ListAllDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                      SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding NameDepartment}"/>
@@ -123,7 +125,7 @@
                         Grid.Column="1"
                         Style="{StaticResource MarginForControl}"
                         
-                        SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                        SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Дата увольнения"
                        Grid.Row="5"
@@ -134,7 +136,7 @@
                         Grid.Row="5"
                         Grid.Column="1"
                         Style="{StaticResource MarginForControl}"
-                        SelectedDate="{Binding DateDismissalEmployee, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                        SelectedDate="{Binding DateDismissalEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal"
@@ -176,7 +178,7 @@
 
             <DataGrid x:Name="DataGridEmployee"
                       Style="{StaticResource MarginForControl}"
-                      ItemsSource="{Binding ListEmployees, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}" 
+                      ItemsSource="{Binding ListEmployeesSelectedDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Mode=TwoWay}" 
                       AutoGenerateColumns="False" 
                       CurrentCellChanged="DataGridEmployee_CurrentCellChanged"
                       CanUserAddRows="False"
@@ -247,6 +249,11 @@
                         Style="{StaticResource MarginForControl}" 
                         Width="Auto"
                         Command="{Binding SaveCsvFileCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+                <Button Content="Показать всех сотрудников"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"
+                        Command="{Binding ShowAllEmployeesCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             </StackPanel >
 
             <TextBlock Text="Список отделов" 
@@ -255,16 +262,11 @@
             
             <TreeView x:Name="TreeViewDepartments" 
                       Height="Auto"
-                      ItemsSource="{Binding ListDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                      ItemsSource="{Binding RootDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{Binding Path=ListDepartments}" >
+                    <HierarchicalDataTemplate ItemsSource="{ Binding ListDepartments}" >
                         <TextBlock Text="{Binding NameDepartment}" />
-                        <HierarchicalDataTemplate.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding NameDepartment}" />
-                            </DataTemplate>
-                        </HierarchicalDataTemplate.ItemTemplate>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
