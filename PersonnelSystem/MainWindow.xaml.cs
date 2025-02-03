@@ -156,6 +156,35 @@ namespace PersonnelSystem
 
         public Department MainDepartment { get; set; }
 
+        /// <summary>
+        /// Значение чекбокса отвечающее, за поиск сотрудников по дате
+        /// </summary>
+        public bool CheckBoxIsSearch 
+        { 
+            get => _CheckBoxIsSearch;
+            set
+            {
+                _CheckBoxIsSearch = value;
+                if (value)
+                    VisibilityControls = Visibility.Collapsed;
+                else
+                    VisibilityControls = Visibility.Visible;
+                OnPropertyChanged(nameof(CheckBoxIsSearch));
+            }
+        }
+        private bool _CheckBoxIsSearch;
+
+        public Visibility VisibilityControls 
+        {
+            get => _VisibilityControls; 
+            set
+            {
+                _VisibilityControls = value;
+                OnPropertyChanged(nameof(VisibilityControls));
+            }
+        }
+        private Visibility _VisibilityControls = Visibility.Visible;
+
         #endregion
 
         #region КОНСТРУКТОР
@@ -208,6 +237,9 @@ namespace PersonnelSystem
             ShowAllEmployeesCommand = new RaiseCommand(ShowAllEmployeesCommand_Execute, ShowAllEmployeesCommand_CanExecute);
         }
 
+        /// <summary>
+        /// Создать первичный узел для дерева
+        /// </summary>
         public void CreateFirstNode()
         {
             MainDepartment = new Department(TagClass: DepartmentAsCsv.Tag,
@@ -749,7 +781,27 @@ namespace PersonnelSystem
             return employees;
         }
 
+        /// <summary>
+        /// Получить список сотрудников за определенный промежуток времени
+        /// </summary>
+        public void GetListEmployeesSpecificDate()
+        {
+            if (CheckBoxIsSearch)
+                return;
+
+            if(DateAdmissionEmployee == null && DateDismissalEmployee == null)
+                return;
+
+            if(DateAdmissionEmployee < DateDismissalEmployee) 
+                return;
+
+        }
+
         #endregion
 
+        private void DatePickerDismissalEmployee_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GetListEmployeesSpecificDate();
+        }
     } //END
 }
