@@ -18,6 +18,7 @@
             <Setter Property="Control.Margin" 
                     Value="2.5" />
         </Style>
+        
         <Style x:Key="ForMainButton">
             <Setter Property="Control.Margin"
                     Value="2.5" />
@@ -27,6 +28,13 @@
                     Value="Auto"/>
             <Setter Property="Control.Height"
                     Value="30"/>
+            <Setter Property="Control.Visibility"
+                    Value="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
+        </Style>
+
+        <Style x:Key="VisibilityForControls">
+            <Setter Property="Control.Visibility"
+                    Value="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
         </Style>
     </Window.Resources>
     
@@ -63,43 +71,50 @@
             <TextBlock Text="Фамилия"
                        Grid.Row="0"
                        Grid.Column="0"
-                       Style="{StaticResource MarginForControl}"/>
+                       Style="{StaticResource MarginForControl}"
+                       Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
             <TextBox x:Name="TextBoxSurnameEmployee" 
                      Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="0"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding SurnameEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
+                     Text="{Binding SurnameEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"
+                     Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Имя"
                        Grid.Row="1"
                        Grid.Column="0"
-                       Style="{StaticResource MarginForControl}"/>
+                       Style="{StaticResource MarginForControl}"
+                       Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
             <TextBox x:Name="TextBoxNameEmployee" 
                      Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="1"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding NameEmployee, RelativeSource={RelativeSource Mode=FindAncestor,  AncestorType=local:MainWindow}}"/>
+                     Text="{Binding NameEmployee, RelativeSource={RelativeSource Mode=FindAncestor,  AncestorType=local:MainWindow}}"
+                     Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Отчество"
                        Grid.Row="2"
                        Grid.Column="0"
-                       Style="{StaticResource MarginForControl}"/>
+                       Style="{StaticResource MarginForControl}"
+                       Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
             <TextBox x:Name="TextBoxPatronymicEmployee" 
                      Width="300"
                      HorizontalAlignment="Right"
                      Grid.Row="2"
                      Grid.Column="1"
                      Style="{StaticResource MarginForControl}"
-                     Text="{Binding PatronymicEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
+                     Text="{Binding PatronymicEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"
+                     Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
 
             <TextBlock Text="Отдел"
                        Grid.Row="3"
                        Grid.Column="0"
-                       Style="{StaticResource MarginForControl}"/>
+                       Style="{StaticResource MarginForControl}"
+                       Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
             <ComboBox x:Name="ComboBoxListDepartment" 
                       Width="300"
                       Grid.Row="3"
@@ -107,7 +122,8 @@
                       Style="{StaticResource MarginForControl}"
                       IsTextSearchEnabled="True"
                       ItemsSource="{Binding ListAllDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
-                      SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}">
+                      SelectedItem="{Binding DepartmentEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"
+                      Visibility="{Binding VisibilityControls, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding NameDepartment}"/>
@@ -124,9 +140,8 @@
                         Grid.Row="4"
                         Grid.Column="1"
                         Style="{StaticResource MarginForControl}"
-                        
                         SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
-
+            
             <TextBlock Text="Дата увольнения"
                        Grid.Row="5"
                        Grid.Column="0"
@@ -136,7 +151,8 @@
                         Grid.Row="5"
                         Grid.Column="1"
                         Style="{StaticResource MarginForControl}"
-                        SelectedDate="{Binding DateDismissalEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
+                        SelectedDate="{Binding DateDismissalEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"
+                        SelectedDateChanged="DatePickerDismissalEmployee_SelectedDateChanged"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal"
@@ -167,14 +183,24 @@
                     Content="Удалить сотрудника"
                     Style="{StaticResource ForMainButton}"
                     Command="{Binding DeleteEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            
         </StackPanel>
         
 
         <DockPanel Grid.Row="2"
                    Grid.Column="1">
-            <TextBlock Text="Список сотрудников" 
-                       DockPanel.Dock="Top"
-                       Style="{StaticResource MarginForControl}"/>
+            <StackPanel Orientation="Horizontal"
+                        DockPanel.Dock="Top">
+                
+                <TextBlock Text="Список сотрудников" 
+                           DockPanel.Dock="Top"
+                           Style="{StaticResource MarginForControl}"/>
+                <CheckBox x:Name="CheckBox_IsSearch"
+                          Margin="10 4 2 2"
+                          Content="Выбрать даты для поиска"
+                          IsChecked="{Binding CheckBoxIsSearch, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+            </StackPanel>
+            
 
             <DataGrid x:Name="DataGridEmployee"
                       Style="{StaticResource MarginForControl}"
