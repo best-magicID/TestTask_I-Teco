@@ -1,0 +1,84 @@
+﻿<Window x:Class="PersonnelSystem.Windows.WindowAddNewDepartment"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PersonnelSystem.Windows"
+        xmlns:local2="clr-namespace:PersonnelSystem"
+        
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:WindowAddNewDepartment}"
+        Title="Окно добавления нового отдела" 
+        Height="150" 
+        Width="400"
+        MinHeight="150"
+        MinWidth="350" 
+        WindowStartupLocation="CenterScreen" 
+        SizeToContent="WidthAndHeight">
+    
+    <Window.Resources>
+        <Style x:Key="MarginForControl">
+            <Setter Property="Control.Margin" 
+                    Value="10"/>
+        </Style>
+        
+        <Style x:Key="MarginForControlRight">
+            <Setter Property="Control.Margin" 
+            Value="10 5 10 2"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid HorizontalAlignment="Center" 
+          VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Название отдела"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   Style="{StaticResource MarginForControl}" />
+        <TextBox x:Name="TextBoxNameDepartment"
+                 Width="200"
+                 HorizontalAlignment="Left"
+                 Grid.Row="0"
+                 Grid.Column="1"
+                 Style="{StaticResource MarginForControlRight}" 
+                 Text="{Binding NameDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}"/>
+
+        <TextBlock Text="Родительский отдел"
+                   Grid.Row="1"
+                   Grid.Column="0"
+                   Style="{StaticResource MarginForControl}" />
+        <ComboBox x:Name="ComboBoxListDepartment" 
+                  Width="200"
+                  Grid.Row="1"
+                  Grid.Column="1"
+                  HorizontalAlignment="Left"
+                  Style="{StaticResource MarginForControlRight}"
+                  IsTextSearchEnabled="False"
+                  ItemsSource="{Binding ListParentsDepartments, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:WindowAddNewDepartment}} }"
+                  SelectedItem="{Binding SelectedDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding NameDepartment}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <Button Content="Добавить отдел"
+                Grid.Row="2"
+                Grid.Column="1"
+                Height="30"
+                HorizontalAlignment="Left"
+                Padding="5"
+                Style="{StaticResource MarginForControl}" 
+                Command="{Binding AddNewDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}"/>
+    </Grid>
+</Window>

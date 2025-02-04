@@ -61,11 +61,17 @@ namespace PersonnelSystem.Classes
         public Employee(string TagClass, int ID_employee, string SurnameEmployee, string NameEmployee,  string PatronymicEmployee, Department? DepartmentEmployee, DateTime DateAdmissionEmployee, DateTime? DateDismissalEmployee = null)
         {
             this.TagClass = TagClass;
+
             this.ID_employee = ID_employee;
+
             this.SurnameEmployee = SurnameEmployee;
             this.NameEmployee = NameEmployee;
             this.PatronymicEmployee = PatronymicEmployee;
+
             this.DepartmentEmployee = DepartmentEmployee;
+            if(DepartmentEmployee!= null) 
+                this.DepartmentEmployeeString = DepartmentEmployee.Id_department.ToString();
+
             this.DateAdmissionEmployee = DateAdmissionEmployee;
             this.DateDismissalEmployee = DateDismissalEmployee;
         }

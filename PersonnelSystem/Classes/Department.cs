@@ -103,6 +103,7 @@ namespace PersonnelSystem.Classes
                 this.Id_department = 0;
 
             this.NameDepartment = departmentAsCsv.NameDepartment;
+
             this.DepartmentsString = departmentAsCsv.DepartmentsString;
             this.ParentDepartmentString = departmentAsCsv.ParentDepartmentString;
 
@@ -113,27 +114,18 @@ namespace PersonnelSystem.Classes
         public Department(string TagClass,
                           int Id_department,
                           string NameDepartment,
-                          ObservableCollection<Department>? ListDepartments,
                           Department? ParentDepartment,
-                          TypeDepartments TypeDepartment,
-                          ObservableCollection<Employee>? ListEmployees)
+                          TypeDepartments TypeDepartment)
         {
             this.TagClass = TagClass;
             this.Id_department = Id_department;
             this.NameDepartment = NameDepartment;
-
-            this.ListDepartments = ListDepartments != null ? ListDepartments : this.ListDepartments;
-
-            if(ListDepartments != null)
-                this.DepartmentsString = string.Join(",", ListDepartments.Select(x => x.Id_department));
 
             this.ParentDepartment = ParentDepartment;
             if (ParentDepartment != null)
                 this.ParentDepartmentString = ParentDepartment.Id_department.ToString();
 
             this.TypeDepartment = TypeDepartment;
-
-            this.ListEmployees = ListEmployees != null ? ListEmployees : this.ListEmployees;
         }
     }
 }
