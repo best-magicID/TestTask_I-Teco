@@ -2,6 +2,7 @@
 using CsvHelper.Configuration;
 using Microsoft.Win32;
 using PersonnelSystem.Classes;
+using PersonnelSystem.Windows;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -58,6 +59,7 @@ namespace PersonnelSystem
         public RaiseCommand DismissEmployeeCommand { get; set; }
         public RaiseCommand ChangeEmployeeCommand { get; set; }
         public RaiseCommand ShowAllEmployeesCommand { get; set; }
+        public RaiseCommand AddDepartmentCommand { get; set; }
 
 
         private string _SurnameEmployee = string.Empty;
@@ -165,11 +167,8 @@ namespace PersonnelSystem
             set
             {
                 _CheckBoxIsSearch = value;
-                if (value)
-                    VisibilityControls = Visibility.Collapsed;
-                else
-                    VisibilityControls = Visibility.Visible;
                 OnPropertyChanged(nameof(CheckBoxIsSearch));
+                SwitchForCheckBoxIsSearch();
             }
         }
         private bool _CheckBoxIsSearch;
@@ -184,6 +183,36 @@ namespace PersonnelSystem
             }
         }
         private Visibility _VisibilityControls = Visibility.Visible;
+
+        /// <summary>
+        /// Текст меняющийся после изменения значения CheckBoxIsSearch
+        /// </summary>
+        public string TextForFirstDate
+        {
+            get => _TextForFirstDate;
+            set
+            {
+                _TextForFirstDate = value;
+                OnPropertyChanged(nameof(TextForFirstDate));
+            }
+        }
+        private string _TextForFirstDate = "Дата трудоустройства";
+
+        /// <summary>
+        /// Текст для второй даты, 
+        /// меняющийся после изменения значения CheckBoxIsSearch
+        /// </summary>
+        public string TextForSecondDate
+        {
+            get => _TextForSecondDate;
+            set
+            {
+                _TextForSecondDate = value;
+                OnPropertyChanged(nameof(TextForSecondDate));
+            }
+        }
+        private string _TextForSecondDate = "Дата увольнения";
+
 
         #endregion
 
@@ -235,6 +264,7 @@ namespace PersonnelSystem
             DeleteEmployeeCommand = new RaiseCommand(DeleteEmployeeCommand_Execute, DeleteEmployeeCommand_CanExecute);
             ChangeEmployeeCommand = new RaiseCommand(ChangeEmployeeCommand_Execute, ChangeEmployeeCommand_CanExecute);
             ShowAllEmployeesCommand = new RaiseCommand(ShowAllEmployeesCommand_Execute, ShowAllEmployeesCommand_CanExecute);
+            AddDepartmentCommand = new RaiseCommand(AddDepartmentCommand_Execute, AddDepartmentCommand_CanExecute);
         }
 
         /// <summary>
@@ -451,6 +481,7 @@ namespace PersonnelSystem
             if (openFileDialog.FileName == string.Empty)
                 return;
 
+            TreeViewDepartments.ItemsSource = null;
             ClearAllList();
 
             ReadCsvFile(openFileDialog.FileName);
@@ -786,22 +817,101 @@ namespace PersonnelSystem
         /// </summary>
         public void GetListEmployeesSpecificDate()
         {
-            if (CheckBoxIsSearch)
+            if (!CheckBoxIsSearch)
                 return;
 
-            if(DateAdmissionEmployee == null && DateDismissalEmployee == null)
+            if(DateAdmissionEmployee == null || DateDismissalEmployee == null)
                 return;
 
-            if(DateAdmissionEmployee < DateDismissalEmployee) 
+            if(DateAdmissionEmployee > DateDismissalEmployee) 
                 return;
 
+            var listEmployeeDate = from employee in ListAllEmployees
+                                   where employee.DateAdmissionEmployee >= DateAdmissionEmployee && employee.DateAdmissionEmployee <= DateDismissalEmployee
+                                   select employee;
+
+            ListEmployeesSelectedDepartment.Clear();
+            foreach ( var employee in listEmployeeDate )
+            {
+                ListEmployeesSelectedDepartment.Add(employee);
+            }
         }
 
-        #endregion
+        /// <summary>
+        /// Изменение свойств при изменении значения CheckBoxIsSearch
+        /// </summary>
+        public void SwitchForCheckBoxIsSearch()
+        {
+            if (CheckBoxIsSearch)
+            {
+                VisibilityControls = Visibility.Collapsed;
+                TextForFirstDate = "Первая дата";
+                TextForSecondDate = "Вторая дата";
+            }
+            else
+            {
+                VisibilityControls = Visibility.Visible;
+                TextForFirstDate = "Дата трудоустройства";
+                TextForSecondDate = "Дата увольнения";
+            }
+        }
 
+        /// <summary>
+        /// Выбор конечной даты (Отображение сотрудников за выбранный промежуток времени)
+        /// </summary>
         private void DatePickerDismissalEmployee_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             GetListEmployeesSpecificDate();
         }
+
+        /// <summary>
+        /// Выбор первичной даты (Отображение сотрудников за выбранный промежуток времени)
+        /// </summary>
+        private void DatePickerAdmissionEmployee_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GetListEmployeesSpecificDate();
+        }
+
+        /// <summary>
+        /// Выполнить команду, Добавить новый отдел
+        /// </summary>
+        private void AddDepartmentCommand_Execute(object parameter)
+        {
+            AddNewDepartment();
+        }
+
+        /// <summary>
+        /// Проверка команды, Добавить новый отдел
+        /// </summary>
+        private bool AddDepartmentCommand_CanExecute(object parameter)
+        {
+            if(ListAllDepartments.Count > 0)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Добавить новый отдел
+        /// </summary>
+        public void AddNewDepartment()
+        {
+            WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(ListAllDepartments);
+            windowAddNewDepartment.ShowDialog();
+
+            var numberNewDepartment = ListAllDepartments.Count + 1;
+
+            Department newDepartment = new Department(TagClass: DepartmentAsCsv.Tag,
+                                                      Id_department: numberNewDepartment,
+                                                      NameDepartment: windowAddNewDepartment.NameDepartment,
+                                                      ParentDepartment: windowAddNewDepartment.SelectedDepartment,
+                                                      TypeDepartment: Department.TypeDepartments.Subordinate);
+
+            ListAllDepartments.Add(newDepartment);
+            MainDepartment.ListDepartments.Add(newDepartment);
+        }
+
+        #endregion
+
     } //END
 }

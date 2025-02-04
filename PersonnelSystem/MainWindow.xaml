@@ -131,7 +131,8 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <TextBlock Text="Дата трудоустройства"
+            <TextBlock x:Name="TextBlock_FirstDate" 
+                       Text="{Binding TextForFirstDate, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow} }"
                        Grid.Row="4"
                        Grid.Column="0"
                        Style="{StaticResource MarginForControl}"/>
@@ -140,9 +141,11 @@
                         Grid.Row="4"
                         Grid.Column="1"
                         Style="{StaticResource MarginForControl}"
-                        SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow}}"/>
-            
-            <TextBlock Text="Дата увольнения"
+                        SelectedDate="{Binding DateAdmissionEmployee, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow} }"
+                        SelectedDateChanged="DatePickerAdmissionEmployee_SelectedDateChanged"/>
+
+            <TextBlock x:Name="TextBlock_SecondDate" 
+                       Text="{Binding TextForSecondDate, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:MainWindow} }"
                        Grid.Row="5"
                        Grid.Column="0"
                        Style="{StaticResource MarginForControl}"/>
@@ -160,7 +163,7 @@
                     Grid.Column="1"
                     Style="{StaticResource MarginForControl}">
             <Button x:Name="ButtonNewEmployee"
-                    Content="Новый сотрудник"
+                    Content="Очистить поля"
                     Style="{StaticResource ForMainButton}"
                     Command="{Binding NewEmployeeCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             
@@ -224,10 +227,10 @@
                                         Binding="{Binding DepartmentEmployee.NameDepartment}" 
                                         Width="Auto" />
                     <DataGridTextColumn Header="Дата трудоустройства" 
-                                        Binding="{Binding DateAdmissionEmployee, StringFormat=\{0:dd.MM.yy\}}" 
+                                        Binding="{Binding DateAdmissionEmployee, StringFormat=\{0:dd.MM.yyyy\}}" 
                                         Width="Auto" />
                     <DataGridTextColumn Header="Дата увольнения" 
-                                        Binding="{Binding DateDismissalEmployee, StringFormat=\{0:dd.MM.yy\}}" 
+                                        Binding="{Binding DateDismissalEmployee, StringFormat=\{0:dd.MM.yyyy\}}" 
                                         Width="Auto" />
                 </DataGrid.Columns>
 
@@ -280,6 +283,11 @@
                         Style="{StaticResource MarginForControl}" 
                         Width="Auto"
                         Command="{Binding ShowAllEmployeesCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+                <Button Content="Добавить новый отдел"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"
+                        Command="{Binding AddDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
             </StackPanel >
 
             <TextBlock Text="Список отделов" 
