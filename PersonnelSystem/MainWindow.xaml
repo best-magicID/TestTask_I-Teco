@@ -288,6 +288,12 @@
                         Style="{StaticResource MarginForControl}" 
                         Width="Auto"
                         Command="{Binding AddDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+                <Button Content="Удалить отдел"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"
+                        Command="{Binding DeleteDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                        CommandParameter="{Binding ElementName=TreeViewDepartments}"/>
             </StackPanel >
 
             <TextBlock Text="Список отделов" 
@@ -299,7 +305,7 @@
                       ItemsSource="{Binding RootDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate ItemsSource="{ Binding ListDepartments}" >
+                    <HierarchicalDataTemplate ItemsSource="{Binding ListDepartments}" >
                         <TextBlock Text="{Binding NameDepartment}" />
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
