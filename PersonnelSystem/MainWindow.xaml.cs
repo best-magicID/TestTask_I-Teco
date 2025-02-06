@@ -60,6 +60,7 @@ namespace PersonnelSystem
         public RaiseCommand ChangeEmployeeCommand { get; set; }
         public RaiseCommand ShowAllEmployeesCommand { get; set; }
         public RaiseCommand AddDepartmentCommand { get; set; }
+        public RaiseCommand DeleteDepartmentCommand { get; set; }
 
 
         private string _SurnameEmployee = string.Empty;
@@ -265,6 +266,7 @@ namespace PersonnelSystem
             ChangeEmployeeCommand = new RaiseCommand(ChangeEmployeeCommand_Execute, ChangeEmployeeCommand_CanExecute);
             ShowAllEmployeesCommand = new RaiseCommand(ShowAllEmployeesCommand_Execute, ShowAllEmployeesCommand_CanExecute);
             AddDepartmentCommand = new RaiseCommand(AddDepartmentCommand_Execute, AddDepartmentCommand_CanExecute);
+            DeleteDepartmentCommand = new RaiseCommand(DeleteDepartmentCommand_Execute, DeleteDepartmentCommand_CanExecute);
         }
 
         /// <summary>
@@ -341,6 +343,9 @@ namespace PersonnelSystem
 
             ListAllEmployees.Add(employee);
             ListAllDepartments.First(x => x == employee.DepartmentEmployee).ListEmployees.Add(employee);
+
+            if(employee.DepartmentEmployee != null) 
+                SelectEmployeesForDepartment(employee.DepartmentEmployee);
         }
 
         /// <summary>
@@ -389,7 +394,13 @@ namespace PersonnelSystem
         /// </summary>
         private void DismissEmployeeCommand_Execute(object? parameter)
         {
-            ListAllEmployees.First(x => x == CurrentEmployee).DateDismissalEmployee = DateDismissalEmployee;
+            var currentEmployee = ListAllEmployees.First(x => x == CurrentEmployee);
+            DismissEmployee(currentEmployee);
+        }
+
+        public void DismissEmployee(Employee employee)
+        {
+            employee.DateDismissalEmployee = DateDismissalEmployee;
 
             string dateAdmissionEmployee = DateAdmissionEmployee?.ToShortDateString() ?? string.Empty;
             string dateDismissalEmployee = DateDismissalEmployee?.ToShortDateString() ?? string.Empty;
@@ -397,8 +408,10 @@ namespace PersonnelSystem
             var text = string.Format($"Сотрудник: {SurnameEmployee} {NameEmployee} {PatronymicEmployee} \r\n" +
                                     $"Принят: {dateAdmissionEmployee}\r\n" +
                                     $"Уволен: {dateDismissalEmployee}");
-            
+
             MessageBox.Show($"{text}", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            SelectEmployeesForDepartment(employee.DepartmentEmployee);
         }
 
         /// <summary>
@@ -481,7 +494,6 @@ namespace PersonnelSystem
             if (openFileDialog.FileName == string.Empty)
                 return;
 
-            TreeViewDepartments.ItemsSource = null;
             ClearAllList();
 
             ReadCsvFile(openFileDialog.FileName);
@@ -527,6 +539,9 @@ namespace PersonnelSystem
 
                     switch (stringReader)
                     {
+                        case "": continue;
+                        case "TagClass": continue;
+
                         case DepartmentAsCsv.Tag:
 
                             if (csvReader.ColumnCount < countPropertiesInDepartment)
@@ -559,9 +574,6 @@ namespace PersonnelSystem
                                 DepartmentEmployee: employeesAsCsv.DepartmentEmployee,
                                 DateAdmissionEmployee: employeesAsCsv.DateAdmissionEmployee,
                                 DateDismissalEmployee: employeesAsCsv.DateDismissalEmployee));
-                            break;
-
-                        case null:
                             break;
                     }
                 }
@@ -706,7 +718,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Отображение списка сотрудников для конкретного отдела
+        /// Выбор отдела для отображения сотрудников
         /// </summary>
         private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
@@ -714,6 +726,17 @@ namespace PersonnelSystem
             var department = treeViewSelectedItem as Department;
 
             if (department is null)
+                return;
+
+            SelectEmployeesForDepartment(department);
+        }
+
+        /// <summary>
+        /// Отображение списка сотрудников для конкретного отдела
+        /// </summary>
+        public void SelectEmployeesForDepartment(Department? department)
+        {
+            if (department == null)
                 return;
 
             CurrentEmployee = null;
@@ -752,6 +775,9 @@ namespace PersonnelSystem
             ListAllEmployees.Clear();
             ListAllEmployeesAsCsv.Clear();
             ListEmployeesSelectedDepartment.Clear();
+            
+            RootDepartment.Clear();
+            MainDepartment.ListDepartments.Clear();
 
             CurrentEmployee = null;
         }
@@ -896,10 +922,19 @@ namespace PersonnelSystem
         /// </summary>
         public void AddNewDepartment()
         {
-            WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(ListAllDepartments);
+            var tempList = new List<Department>();
+            tempList.Add(MainDepartment);
+            tempList.AddRange(ListAllDepartments);
+
+            WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(tempList);
             windowAddNewDepartment.ShowDialog();
 
             var numberNewDepartment = ListAllDepartments.Count + 1;
+            if(string.IsNullOrEmpty(windowAddNewDepartment.NameDepartment))
+            {
+                MessageBox.Show("Не задано имя", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             Department newDepartment = new Department(TagClass: DepartmentAsCsv.Tag,
                                                       Id_department: numberNewDepartment,
@@ -908,7 +943,44 @@ namespace PersonnelSystem
                                                       TypeDepartment: Department.TypeDepartments.Subordinate);
 
             ListAllDepartments.Add(newDepartment);
-            MainDepartment.ListDepartments.Add(newDepartment);
+            windowAddNewDepartment.SelectedDepartment.ListDepartments.Add(newDepartment);
+        }
+
+        /// <summary>
+        /// Выполнить команду, Удалить отдел
+        /// </summary>
+        private void DeleteDepartmentCommand_Execute(Object parameter)
+        {
+            var selectedItem = (parameter as TreeView)?.SelectedItem;
+
+            if (selectedItem is Department selectedDepartment)
+            {
+                ListAllDepartments.Remove(selectedDepartment);
+
+                DeleteDepartment(selectedDepartment, MainDepartment.ListDepartments);
+            }
+        }
+
+        /// <summary>
+        /// Проверка команды, Удалить отдел
+        /// </summary>
+        private bool DeleteDepartmentCommand_CanExecute(Object parameter)
+        {
+            return (parameter as TreeView)?.SelectedItem != null;
+        }
+
+        /// <summary>
+        /// Удалить отдел
+        /// </summary>
+        public void DeleteDepartment(Department department, ObservableCollection<Department> ObserCollDepartments)
+        {
+            if(!ObserCollDepartments.Remove(department))
+            {
+                foreach (var item in ObserCollDepartments.Select(x => x.ListDepartments))
+                {
+                    DeleteDepartment(department, item);
+                }
+            }
         }
 
         #endregion

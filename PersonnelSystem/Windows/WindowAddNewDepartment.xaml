@@ -49,8 +49,10 @@
                  HorizontalAlignment="Left"
                  Grid.Row="0"
                  Grid.Column="1"
+                 VerticalAlignment="Center"
                  Style="{StaticResource MarginForControlRight}" 
-                 Text="{Binding NameDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}"/>
+                 Text="{Binding NameDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}"
+                 TextChanged="TextBoxNameDepartment_TextChanged"/>
 
         <TextBlock Text="Родительский отдел"
                    Grid.Row="1"
@@ -67,7 +69,8 @@
                   SelectedItem="{Binding SelectedDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowAddNewDepartment}}">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding NameDepartment}"/>
+                    <TextBlock Text="{Binding NameDepartment}"
+                               VerticalAlignment="Center"/>
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>

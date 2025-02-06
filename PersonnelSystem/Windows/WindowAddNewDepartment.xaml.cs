@@ -1,6 +1,7 @@
 ﻿using PersonnelSystem.Classes;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace PersonnelSystem.Windows
 {
@@ -41,6 +42,8 @@ namespace PersonnelSystem.Windows
 
         public RaiseCommand AddNewDepartmentCommand { get; set; }
 
+        public bool TextIsNull { get; set; } = false;
+
         #region ОБНОВЛЕНИЕ UI
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -78,10 +81,16 @@ namespace PersonnelSystem.Windows
         /// </summary>
         private bool AddNewDepartmentCommand_CanExecute(object parameter)
         {
-            if(string.IsNullOrEmpty(NameDepartment) || ListParentsDepartments == null) 
-                return false;
-            else 
-                return true;
+            return TextIsNull;
+        }
+
+        private void TextBoxNameDepartment_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            var NameDepartment = (sender as TextBox)?.Text;
+            if (string.IsNullOrEmpty(NameDepartment) || ListParentsDepartments == null)
+                TextIsNull = false;
+            else
+                TextIsNull = true;
         }
     }
 }
