@@ -202,6 +202,15 @@
                           Margin="10 4 2 2"
                           Content="Выбрать даты для поиска"
                           IsChecked="{Binding CheckBoxIsSearch, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+
+                <TextBlock Text="Поиск" 
+                           DockPanel.Dock="Top"
+                           Margin="30 4 2 2"
+                           Style="{StaticResource MarginForControl}"/>
+
+                <TextBox Width="200"
+                         Text="{Binding TextSearch, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Mode=TwoWay}"
+                         KeyDown="TextBox_KeyDown"/>
             </StackPanel>
             
 
