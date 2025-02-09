@@ -155,7 +155,10 @@ namespace PersonnelSystem
         private Employee? _CurrentEmployee;
 
         public const string NameFileCsv = "ListDepartment.csv";
-        public string Path = System.IO.Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileCsv;
+        public string Path = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileCsv;
+
+        public const string NameFileLogs = "Logs.txt";
+        public string PathForLogs = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileLogs;
 
         public Department MainDepartment { get; set; }
 
@@ -214,6 +217,32 @@ namespace PersonnelSystem
         }
         private string _TextForSecondDate = "Дата увольнения";
 
+        /// <summary>
+        /// Текст для поиска по ФИО
+        /// </summary>
+        public string TextSearch
+        {
+            get => _TextSearch;
+            set
+            {
+                _TextSearch = value;
+                OnPropertyChanged(nameof(TextSearch));
+            }
+        }
+        private string _TextSearch = string.Empty;
+
+        /// <summary>
+        /// Типы сохранения в лог
+        /// </summary>
+        public enum SaveLogAction
+        {
+            AddEmployee = 11,
+            DeleteEmployee = 12,
+            ChangeEmployee = 13,
+            DismissEmployee = 14,
+            AddDepartment = 21,
+            DeleteDepartment = 22
+        }
 
         #endregion
 
@@ -259,12 +288,14 @@ namespace PersonnelSystem
         {
             ReadCsvFileCommand = new RaiseCommand(ReadCsvFileCommand_Execute);
             SaveCsvFileCommand = new RaiseCommand(SaveCsvFileCommand_Execute);
+
             AddEmployeeCommand = new RaiseCommand(AddEmployeeCommand_Execute, AddEmployeeCommand_CanExecute);
             NewEmployeeCommand = new RaiseCommand(NewEmployeeCommand_Execute, NewEmployeeCommand_CanExecute);
             DismissEmployeeCommand = new RaiseCommand(DismissEmployeeCommand_Execute, DismissEmployeeCommand_CanExecute);
             DeleteEmployeeCommand = new RaiseCommand(DeleteEmployeeCommand_Execute, DeleteEmployeeCommand_CanExecute);
             ChangeEmployeeCommand = new RaiseCommand(ChangeEmployeeCommand_Execute, ChangeEmployeeCommand_CanExecute);
             ShowAllEmployeesCommand = new RaiseCommand(ShowAllEmployeesCommand_Execute, ShowAllEmployeesCommand_CanExecute);
+
             AddDepartmentCommand = new RaiseCommand(AddDepartmentCommand_Execute, AddDepartmentCommand_CanExecute);
             DeleteDepartmentCommand = new RaiseCommand(DeleteDepartmentCommand_Execute, DeleteDepartmentCommand_CanExecute);
         }
@@ -346,6 +377,8 @@ namespace PersonnelSystem
 
             if(employee.DepartmentEmployee != null) 
                 SelectEmployeesForDepartment(employee.DepartmentEmployee);
+
+            AddLogs(SaveLogAction.AddEmployee, employee, employee.DepartmentEmployee);
         }
 
         /// <summary>
@@ -372,6 +405,32 @@ namespace PersonnelSystem
         }
 
         /// <summary>
+        /// Проверка, есть ли что-то в полях для ввода информации о сотруднике
+        /// </summary>
+        public bool IsTextInField()
+        {
+            if (!string.IsNullOrEmpty(TextBoxSurnameEmployee.Text))
+                return true;
+
+            if (!string.IsNullOrEmpty(TextBoxNameEmployee.Text))
+                return true;
+
+            if (!string.IsNullOrEmpty(TextBoxPatronymicEmployee.Text))
+                return true;
+
+            if (!string.IsNullOrEmpty(ComboBoxListDepartment.Text))
+                return true;
+
+            if (!string.IsNullOrEmpty(DatePickerAdmissionEmployee.Text))
+                return true;
+
+            if (!string.IsNullOrEmpty(DatePickerAdmissionEmployee.Text))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
         /// Выполнить команду, Очистить поля для заполнения нового сотрудника 
         /// </summary>
         public void NewEmployeeCommand_Execute(object? parameter)
@@ -386,7 +445,7 @@ namespace PersonnelSystem
         /// </summary>
         private bool NewEmployeeCommand_CanExecute(object? parameter)
         {
-            return CheckField();
+            return IsTextInField();
         }
 
         /// <summary>
@@ -412,6 +471,8 @@ namespace PersonnelSystem
             MessageBox.Show($"{text}", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
 
             SelectEmployeesForDepartment(employee.DepartmentEmployee);
+
+            AddLogs(SaveLogAction.DismissEmployee, employee, employee.DepartmentEmployee);
         }
 
         /// <summary>
@@ -432,10 +493,13 @@ namespace PersonnelSystem
         /// </summary>
         private void DeleteEmployeeCommand_Execute(object parameter)
         {
+            AddLogs(SaveLogAction.DeleteEmployee, CurrentEmployee, CurrentEmployee!.DepartmentEmployee);
+
             ListEmployeesSelectedDepartment.Remove(CurrentEmployee!);
 
             ListAllEmployees.Remove(CurrentEmployee!);
             ListAllDepartments.First(x => x.ListEmployees.Remove(CurrentEmployee!));
+
             CurrentEmployee = null;
         }
 
@@ -452,7 +516,18 @@ namespace PersonnelSystem
         /// </summary>
         private bool ChangeEmployeeCommand_CanExecute(object parameter)
         {
-            return CurrentEmployee != null;
+            if (CurrentEmployee == null)
+                return false;
+
+            if (CurrentEmployee.SurnameEmployee == SurnameEmployee &&
+                CurrentEmployee.NameEmployee == NameEmployee &&
+                CurrentEmployee.PatronymicEmployee == PatronymicEmployee &&
+                CurrentEmployee.DepartmentEmployee == DepartmentEmployee &&
+                CurrentEmployee.DateAdmissionEmployee == DateAdmissionEmployee &&
+                CurrentEmployee.DateDismissalEmployee == DateDismissalEmployee)
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -464,7 +539,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Заполнение данными экземпляр класса сотрудники
+        /// Изменение информации о сотруднике
         /// </summary>
         public void TextInsertCurrentEmployee(Employee? employee)
         {
@@ -481,6 +556,10 @@ namespace PersonnelSystem
 
             employee.DateAdmissionEmployee = DateAdmissionEmployee ?? employee.DateAdmissionEmployee;
             employee.DateDismissalEmployee = DateDismissalEmployee;
+
+            SelectEmployeesForDepartment(employee.DepartmentEmployee);
+
+            AddLogs(SaveLogAction.ChangeEmployee, employee, employee.DepartmentEmployee);
         }
 
         /// <summary>
@@ -841,7 +920,7 @@ namespace PersonnelSystem
         /// <summary>
         /// Получить список сотрудников за определенный промежуток времени
         /// </summary>
-        public void GetListEmployeesSpecificDate()
+        public void GetListEmployeesSpecificDate(List<Employee>? employees)
         {
             if (!CheckBoxIsSearch)
                 return;
@@ -852,9 +931,20 @@ namespace PersonnelSystem
             if(DateAdmissionEmployee > DateDismissalEmployee) 
                 return;
 
-            var listEmployeeDate = from employee in ListAllEmployees
-                                   where employee.DateAdmissionEmployee >= DateAdmissionEmployee && employee.DateAdmissionEmployee <= DateDismissalEmployee
-                                   select employee;
+            List<Employee> listEmployeeDate = [];
+
+            if (employees?.Count > 0)
+            {
+                listEmployeeDate = (from employee in employees
+                                    where employee.DateAdmissionEmployee >= DateAdmissionEmployee && employee.DateAdmissionEmployee <= DateDismissalEmployee
+                                    select employee).ToList();
+            }
+            else
+            {
+                listEmployeeDate = (from employee in ListAllEmployees
+                                    where employee.DateAdmissionEmployee >= DateAdmissionEmployee && employee.DateAdmissionEmployee <= DateDismissalEmployee
+                                    select employee).ToList();
+            }
 
             ListEmployeesSelectedDepartment.Clear();
             foreach ( var employee in listEmployeeDate )
@@ -880,6 +970,9 @@ namespace PersonnelSystem
                 TextForFirstDate = "Дата трудоустройства";
                 TextForSecondDate = "Дата увольнения";
             }
+
+            DateAdmissionEmployee = null;
+            DateDismissalEmployee = null; 
         }
 
         /// <summary>
@@ -887,7 +980,7 @@ namespace PersonnelSystem
         /// </summary>
         private void DatePickerDismissalEmployee_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            GetListEmployeesSpecificDate();
+            GetListEmployeesSpecificDate(null);
         }
 
         /// <summary>
@@ -895,7 +988,7 @@ namespace PersonnelSystem
         /// </summary>
         private void DatePickerAdmissionEmployee_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            GetListEmployeesSpecificDate();
+            GetListEmployeesSpecificDate(null);
         }
 
         /// <summary>
@@ -944,6 +1037,8 @@ namespace PersonnelSystem
 
             ListAllDepartments.Add(newDepartment);
             windowAddNewDepartment.SelectedDepartment.ListDepartments.Add(newDepartment);
+
+            AddLogs(SaveLogAction.AddDepartment, null, newDepartment);
         }
 
         /// <summary>
@@ -980,6 +1075,173 @@ namespace PersonnelSystem
                 {
                     DeleteDepartment(department, item);
                 }
+            }
+            else
+                AddLogs(SaveLogAction.DeleteDepartment, null, department);
+        }
+
+        /// <summary>
+        /// Фильтр списка сотрудников
+        /// </summary>
+        public void FilterEmployees()
+        {
+            if(ListEmployeesSelectedDepartment.Count < 1)
+            {
+                foreach (var item in ListAllEmployees)
+                    ListEmployeesSelectedDepartment.Add(item);
+            }
+
+            var list = (from employee in ListAllEmployees
+                        where employee.SurnameEmployee.Contains($"{TextSearch}", StringComparison.CurrentCultureIgnoreCase) ||
+                              employee.NameEmployee.Contains($"{TextSearch}", StringComparison.CurrentCultureIgnoreCase) ||
+                              employee.PatronymicEmployee.Contains($"{TextSearch}", StringComparison.CurrentCultureIgnoreCase)
+                        select employee).ToList();
+
+            ListEmployeesSelectedDepartment.Clear();
+
+            if (list?.Count > 0)
+            {
+                foreach (var employee in list)
+                {
+                    ListEmployeesSelectedDepartment.Add(employee);
+                }
+            }
+            else if(TextSearch == string.Empty)
+            {
+                foreach (var employee in ListAllEmployees)
+                {
+                    ListEmployeesSelectedDepartment.Add(employee);
+                }
+            }
+
+            if (CheckBoxIsSearch)
+                GetListEmployeesSpecificDate(ListEmployeesSelectedDepartment.ToList());
+        }
+
+        private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                var text = (sender as TextBox)?.Text ?? string.Empty;
+                TextSearch = text;
+                FilterEmployees();
+            }
+        }
+
+        /// <summary>
+        /// Добавление логов 
+        /// </summary>
+        public async void AddLogs(SaveLogAction saveLogAction, Employee? employee, Department? department)
+        {
+            if (employee == null &&
+                (SaveLogAction.AddEmployee == saveLogAction || 
+                SaveLogAction.DeleteEmployee == saveLogAction || 
+                SaveLogAction.ChangeEmployee == saveLogAction ||
+                SaveLogAction.DismissEmployee == saveLogAction))
+                return;
+                
+            if(department == null) 
+                return;
+
+            string text = string.Empty;
+            string dateNow = DateTime.Now.ToString();
+
+            string idEmp = employee?.ID_employee.ToString() ?? string.Empty;
+            string surnameEmp = employee?.SurnameEmployee ?? string.Empty;
+            string nameEmp = employee?.NameEmployee ?? string.Empty;
+            string patEmp = employee?.PatronymicEmployee ?? string.Empty;
+            string dateAdmissionEmp = employee?.DateAdmissionEmployee.ToString("d") ?? string.Empty;
+            string dateDismissalEmp = employee?.DateDismissalEmployee?.ToString("d") ?? "нет";
+
+            string nameDep = department.NameDepartment;
+            string idDep = department.Id_department.ToString();
+            string parentDep = department.ParentDepartment?.NameDepartment ?? "нет";
+            string idParentDep = department.ParentDepartment?.Id_department.ToString() ?? "нет";
+
+            #region ПОЛУЧЕНИЕ СПИСКА УДАЛЕННЫХ ПОДЧИНЕННЫХ ОТДЕЛОВ
+
+            List<Department> listSubsidiaryDepartments = new List<Department>();
+            GetListSubsidiaryDepartments(department.ListDepartments.ToList(), listSubsidiaryDepartments);
+
+            string textSubDeps = string.Empty;
+
+            if (listSubsidiaryDepartments.Count < 1)
+                textSubDeps = "нет";
+            else
+            {
+                foreach (var dep in listSubsidiaryDepartments)
+                {
+                    textSubDeps += "id: \"" + dep.Id_department + "\" название: \"" + dep.NameDepartment + "\", ";
+                }
+                textSubDeps = textSubDeps.Substring(0, textSubDeps.Length - 2);
+            }
+            
+            #endregion 
+
+            switch (saveLogAction)
+            {
+                case SaveLogAction.AddEmployee:
+                    text = string.Format($"Добавлен сотрудник - id: \"{idEmp}\", ФИО: \"{surnameEmp} {nameEmp} {patEmp}\", " +
+                                         $"дата трудоустройства: \"{dateAdmissionEmp}\", дата увольнения: \"{dateDismissalEmp}\", " +
+                                         $"в отдел - id: \"{idDep}\" название: \"{nameDep}\", дата: \"{dateNow}\"");
+                    break;
+
+                case SaveLogAction.DeleteEmployee:
+                    text = string.Format($"Удален сотрудник - id:\"{idEmp}\", ФИО: \"{surnameEmp} {nameEmp} {patEmp}\", " +
+                                         $"дата трудоустройства: \"{dateAdmissionEmp}\", дата увольнения: \"{dateDismissalEmp}\", " +
+                                         $"отдел - id: \"{idDep}\" название: \"{nameDep}\", дата: \"{dateNow}\"");
+                    break;
+
+                case SaveLogAction.ChangeEmployee:
+                    text = string.Format($"Изменен сотрудник - id:\"{idEmp}\", ФИО: \"{surnameEmp} {nameEmp} {patEmp}\", " +
+                                         $"дата трудоустройства: \"{dateAdmissionEmp}\", дата увольнения: \"{dateDismissalEmp}\", " +
+                                         $"отдел - id: \"{idDep}\" название: \"{nameDep}\", дата: \"{dateNow}\"");
+                    break;
+
+                case SaveLogAction.DismissEmployee:
+                    text = string.Format($"Уволен сотрудник - id:\"{idEmp}\", ФИО: \"{surnameEmp} {nameEmp} {patEmp}\", " +
+                                         $"дата трудоустройства: \"{dateAdmissionEmp}\", дата увольнения: \"{dateDismissalEmp}\", " +
+                                         $"отдел - id: \"{idDep}\" название: \"{nameDep}\", дата: \"{dateNow}\"");
+                    break;
+
+                case SaveLogAction.AddDepartment:
+                    text = string.Format($"Добавлен отдел - id: \"{idDep}\" название: \"{nameDep}\", родительский отдел - id: \"{idParentDep}\" название: \"{parentDep}\", дата: \"{dateNow}\"");
+                    break;
+
+                case SaveLogAction.DeleteDepartment:
+                    text = string.Format($"Удален отдел - id: \"{idDep}\" название: \"{nameDep}\", родительский отдел - id: \"{idParentDep}\" название: \"{parentDep}\", " +
+                                         $"дочерние отделы - ({textSubDeps}), дата: \"{dateNow}\"");
+                    break;
+
+                default:
+                    break;
+            }
+
+            using (StreamWriter writer = new StreamWriter(PathForLogs, ExistFile()))
+            {
+                await writer.WriteLineAsync(text);
+            }
+        }
+
+        /// <summary>
+        /// Проверка, существует ли файл
+        /// </summary>
+        public bool ExistFile()
+        {
+            return File.Exists(PathForLogs);
+        }
+
+        /// <summary>
+        /// Получение списка подсиненных отделов
+        /// </summary>
+        public void GetListSubsidiaryDepartments(List<Department> listSubsidiaryDepartments, List<Department> plusDep)
+        {
+            foreach (var department in listSubsidiaryDepartments)
+            {
+                plusDep.Add(department);
+
+                if (department.ListDepartments.Count > 0)
+                    GetListSubsidiaryDepartments(department.ListDepartments.ToList(), plusDep);
             }
         }
 
