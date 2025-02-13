@@ -62,8 +62,21 @@ namespace PersonnelSystem.Windows
         {
             InitializeComponent();
 
-            this.ListParentsDepartments = ListParentsDepartments;
+            this.ListParentsDepartments = ListParentsDepartments.OrderBy(x => x.Id_department).ToList(); 
             this.SelectedDepartment = ListParentsDepartments[0];
+
+            AddNewDepartmentCommand = new RaiseCommand(AddNewDepartmentCommand_Execute, AddNewDepartmentCommand_CanExecute);
+        }
+
+        public WindowAddNewDepartment(List<Department> ListParentsDepartments, Department? currentDepartment)
+        {
+            InitializeComponent();
+
+            this.ListParentsDepartments = ListParentsDepartments.OrderBy(x => x.Id_department).ToList();
+            if (currentDepartment != null)
+                this.SelectedDepartment = currentDepartment;
+            else
+                this.SelectedDepartment = ListParentsDepartments[0];
 
             AddNewDepartmentCommand = new RaiseCommand(AddNewDepartmentCommand_Execute, AddNewDepartmentCommand_CanExecute);
         }

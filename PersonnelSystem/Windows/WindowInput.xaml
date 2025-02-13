@@ -1,0 +1,51 @@
+﻿<Window x:Class="PersonnelSystem.Windows.WindowInput"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PersonnelSystem.Windows"
+        
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=local:WindowInput}"
+        Title="Окно ввода" 
+        Height="100" 
+        Width="350" 
+        WindowStartupLocation="CenterScreen" 
+        SizeToContent="WidthAndHeight">
+    
+    <Window.Resources>
+        <Style x:Key="MarginForControl">
+            <Setter Property="Control.Margin" 
+                    Value="5" />
+            <Setter Property="Control.VerticalAlignment"
+                    Value="Center"/>
+        </Style>
+    </Window.Resources>
+    
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Введите название отдела"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   Style="{StaticResource MarginForControl}"/>
+
+        <TextBox Grid.Row="0"
+                 Grid.Column="1"
+                 Style="{StaticResource MarginForControl}"
+                 TextChanged="TextBox_TextChanged"/>
+
+        <Button Content="Переименовать отдел" 
+                Grid.Row="1"
+                Grid.Column="1"
+                Style="{StaticResource MarginForControl}"
+                Command="{Binding RenameDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowInput}}"/>
+    </Grid>
+</Window>

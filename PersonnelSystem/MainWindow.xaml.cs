@@ -15,11 +15,19 @@ using System.Windows.Controls;
 namespace PersonnelSystem
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Кадровая система
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         #region ПОЛЯ И СВОЙСТВА
+
+        public const string NameFileCsv = "ListDepartment.csv";
+        public string Path = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileCsv;
+
+        public const string NameFileLogs = "Logs.txt";
+        public string PathForLogs = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileLogs;
+
+        public Department? MainDepartment { get; set; }
 
         /// <summary>
         /// Список всех отделов
@@ -51,19 +59,9 @@ namespace PersonnelSystem
         /// </summary>
         public List<EmployeeAsCsv> ListAllEmployeesAsCsv { get; set; } = new List<EmployeeAsCsv>();
 
-        public RaiseCommand ReadCsvFileCommand { get; set; }
-        public RaiseCommand SaveCsvFileCommand { get; set; }
-        public RaiseCommand AddEmployeeCommand { get; set; }
-        public RaiseCommand NewEmployeeCommand { get; set; }
-        public RaiseCommand DeleteEmployeeCommand { get; set; }
-        public RaiseCommand DismissEmployeeCommand { get; set; }
-        public RaiseCommand ChangeEmployeeCommand { get; set; }
-        public RaiseCommand ShowAllEmployeesCommand { get; set; }
-        public RaiseCommand AddDepartmentCommand { get; set; }
-        public RaiseCommand DeleteDepartmentCommand { get; set; }
-
-
-        private string _SurnameEmployee = string.Empty;
+        /// <summary>
+        /// Фамилия сотрудника
+        /// </summary>
         public string SurnameEmployee
         {
             get => _SurnameEmployee;
@@ -73,8 +71,11 @@ namespace PersonnelSystem
                 OnPropertyChanged(nameof(SurnameEmployee));
             }
         }
+        private string _SurnameEmployee = string.Empty;
 
-        private string _NameEmployee = string.Empty;
+        /// <summary>
+        /// Имя сотрудника
+        /// </summary>
         public string NameEmployee
         {
             get => _NameEmployee;
@@ -84,7 +85,11 @@ namespace PersonnelSystem
                 OnPropertyChanged(nameof(NameEmployee));
             }
         }
+        private string _NameEmployee = string.Empty;
 
+        /// <summary>
+        /// Отчество сотрудника
+        /// </summary>
         public string PatronymicEmployee
         {
             get => _PatronymicEmployee;
@@ -139,7 +144,6 @@ namespace PersonnelSystem
         }
         private DateTime? _DateDismissalEmployee;
 
-
         /// <summary>
         /// Выбранный сотрудник
         /// </summary>
@@ -154,19 +158,25 @@ namespace PersonnelSystem
         }
         private Employee? _CurrentEmployee;
 
-        public const string NameFileCsv = "ListDepartment.csv";
-        public string Path = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileCsv;
-
-        public const string NameFileLogs = "Logs.txt";
-        public string PathForLogs = Directory.GetCurrentDirectory() + "\\Файлы CSV\\" + NameFileLogs;
-
-        public Department MainDepartment { get; set; }
+        /// <summary>
+        /// Выбранный отдел
+        /// </summary>
+        public Department? CurrentDepartment
+        {
+            get => _CurrentDepartment;
+            set
+            {
+                _CurrentDepartment = value;
+                OnPropertyChanged(nameof(CurrentDepartment));
+            }
+        }
+        private Department? _CurrentDepartment;
 
         /// <summary>
         /// Значение чекбокса отвечающее, за поиск сотрудников по дате
         /// </summary>
-        public bool CheckBoxIsSearch 
-        { 
+        public bool CheckBoxIsSearch
+        {
             get => _CheckBoxIsSearch;
             set
             {
@@ -177,9 +187,12 @@ namespace PersonnelSystem
         }
         private bool _CheckBoxIsSearch;
 
-        public Visibility VisibilityControls 
+        /// <summary>
+        /// Видимость контролов
+        /// </summary>
+        public Visibility VisibilityControls
         {
-            get => _VisibilityControls; 
+            get => _VisibilityControls;
             set
             {
                 _VisibilityControls = value;
@@ -244,6 +257,24 @@ namespace PersonnelSystem
             DeleteDepartment = 22
         }
 
+        #region КОМАНДЫ
+
+        public RaiseCommand? ReadCsvFileCommand { get; set; }
+        public RaiseCommand? SaveCsvFileCommand { get; set; }
+
+        public RaiseCommand? AddEmployeeCommand { get; set; }
+        public RaiseCommand? NewEmployeeCommand { get; set; }
+        public RaiseCommand? DeleteEmployeeCommand { get; set; }
+        public RaiseCommand? DismissEmployeeCommand { get; set; }
+        public RaiseCommand? ChangeEmployeeCommand { get; set; }
+        public RaiseCommand? ShowAllEmployeesCommand { get; set; }
+
+        public RaiseCommand? AddDepartmentCommand { get; set; }
+        public RaiseCommand? RenameDepartmentCommand { get; set; }
+        public RaiseCommand? DeleteDepartmentCommand { get; set; }
+
+        #endregion
+
         #endregion
 
         #region КОНСТРУКТОР
@@ -261,6 +292,8 @@ namespace PersonnelSystem
                 ReadCsvFile(Path);
                 ConvertListsCsvInLists();
             }
+
+            DataContext = this;
         }
 
         #endregion
@@ -297,6 +330,7 @@ namespace PersonnelSystem
             ShowAllEmployeesCommand = new RaiseCommand(ShowAllEmployeesCommand_Execute, ShowAllEmployeesCommand_CanExecute);
 
             AddDepartmentCommand = new RaiseCommand(AddDepartmentCommand_Execute, AddDepartmentCommand_CanExecute);
+            RenameDepartmentCommand = new RaiseCommand(RenameDepartmentCommand_Execute, RenameDepartmentCommand_CanExecute);
             DeleteDepartmentCommand = new RaiseCommand(DeleteDepartmentCommand_Execute, DeleteDepartmentCommand_CanExecute);
         }
 
@@ -313,8 +347,18 @@ namespace PersonnelSystem
                                             ParentDepartment: null,
                                             ParentDepartmentString: string.Empty,
                                             TypeDepartment: "Main",
-                                            ListEmployees: null
-                );
+                                            ListEmployees: null );
+        }
+
+        /// <summary>
+        /// Проверка команды, Показать всех сотрудников
+        /// </summary>
+        private bool ShowAllEmployeesCommand_CanExecute(object parameter)
+        {
+            if (ListAllEmployees != null && ListAllEmployees.Count > 0)
+                return true;
+            else
+                return false;
         }
 
         /// <summary>
@@ -331,17 +375,6 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка команды, Показать всех сотрудников
-        /// </summary>
-        private bool ShowAllEmployeesCommand_CanExecute(object parameter)
-        {
-            if(ListAllEmployees != null && ListAllEmployees.Count > 0)
-                return true;
-            else
-                return false;
-        }
-
-        /// <summary>
         /// Проверка, перед Добавлением нового сотрудника
         /// </summary>
         private bool AddEmployeeCommand_CanExecute(object? parameter)
@@ -354,10 +387,8 @@ namespace PersonnelSystem
         /// </summary>
         private void AddEmployeeCommand_Execute(object? parameter)
         {
-            var countEmployee = ListAllEmployees.Count;
-
             Employee employee = new Employee(TagClass: EmployeeAsCsv.Tag,
-                                            ID_employee: countEmployee,
+                                            ID_employee: ListAllEmployees.Count,
                                             SurnameEmployee: SurnameEmployee,
                                             NameEmployee: NameEmployee,
                                             PatronymicEmployee: PatronymicEmployee,
@@ -370,12 +401,12 @@ namespace PersonnelSystem
                 MessageBox.Show("Данный сотрудник уже есть в списке", "Внимание", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            employee.ID_employee ++;
+            employee.ID_employee++;
 
             ListAllEmployees.Add(employee);
             ListAllDepartments.First(x => x == employee.DepartmentEmployee).ListEmployees.Add(employee);
 
-            if(employee.DepartmentEmployee != null) 
+            if (employee.DepartmentEmployee != null)
                 SelectEmployeesForDepartment(employee.DepartmentEmployee);
 
             AddLogs(SaveLogAction.AddEmployee, employee, employee.DepartmentEmployee);
@@ -386,7 +417,7 @@ namespace PersonnelSystem
         /// </summary>
         public bool CheckField()
         {
-            if(string.IsNullOrEmpty(TextBoxSurnameEmployee.Text))
+            if (string.IsNullOrEmpty(TextBoxSurnameEmployee.Text))
                 return false;
 
             if (string.IsNullOrEmpty(TextBoxNameEmployee.Text))
@@ -457,6 +488,9 @@ namespace PersonnelSystem
             DismissEmployee(currentEmployee);
         }
 
+        /// <summary>
+        /// Уволить сотрудника
+        /// </summary>
         public void DismissEmployee(Employee employee)
         {
             employee.DateDismissalEmployee = DateDismissalEmployee;
@@ -576,7 +610,7 @@ namespace PersonnelSystem
             ClearAllList();
 
             ReadCsvFile(openFileDialog.FileName);
-            
+
             ConvertListsCsvInLists();
         }
 
@@ -592,9 +626,9 @@ namespace PersonnelSystem
             {
                 streamReader = new StreamReader(pathFile, Encoding.GetEncoding(1251));
             }
-            catch 
+            catch
             {
-                 streamReader = new StreamReader(pathFile, Encoding.UTF8);
+                streamReader = new StreamReader(pathFile, Encoding.UTF8);
             }
 
             var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
@@ -695,7 +729,7 @@ namespace PersonnelSystem
                                                where int.TryParse(department.ParentDepartmentString, out int depOut) && depOut == dep.Id_department
                                                select dep).FirstOrDefault(MainDepartment);
 
-                if(department.ParentDepartment == MainDepartment)
+                if (department.ParentDepartment == MainDepartment)
                     MainDepartment.ListDepartments?.Add(department);
 
                 #region Добавление дочерних отделов в Родительский отдел (Не актуально)
@@ -769,7 +803,7 @@ namespace PersonnelSystem
                     csv.WriteRecord(new DepartmentAsCsv(department));
                     csv.NextRecord();
 
-                    if(typeSaveCsv == "Чередующееся")
+                    if (typeSaveCsv == "Чередующееся")
                         foreach (var employee in department.ListEmployees)
                         {
                             csv.WriteRecord(new EmployeeAsCsv(employee));
@@ -784,7 +818,7 @@ namespace PersonnelSystem
                     csv.NextRecord();
 
                     foreach (var employee in ListAllEmployees)
-                        {
+                    {
                         csv.WriteRecord(new EmployeeAsCsv(employee));
                         csv.NextRecord();
                     }
@@ -806,6 +840,8 @@ namespace PersonnelSystem
 
             if (department is null)
                 return;
+
+            CurrentDepartment = department;
 
             SelectEmployeesForDepartment(department);
         }
@@ -854,9 +890,9 @@ namespace PersonnelSystem
             ListAllEmployees.Clear();
             ListAllEmployeesAsCsv.Clear();
             ListEmployeesSelectedDepartment.Clear();
-            
+
             RootDepartment.Clear();
-            MainDepartment.ListDepartments.Clear();
+            MainDepartment?.ListDepartments.Clear();
 
             CurrentEmployee = null;
         }
@@ -925,10 +961,10 @@ namespace PersonnelSystem
             if (!CheckBoxIsSearch)
                 return;
 
-            if(DateAdmissionEmployee == null || DateDismissalEmployee == null)
+            if (DateAdmissionEmployee == null || DateDismissalEmployee == null)
                 return;
 
-            if(DateAdmissionEmployee > DateDismissalEmployee) 
+            if (DateAdmissionEmployee > DateDismissalEmployee)
                 return;
 
             List<Employee> listEmployeeDate = [];
@@ -947,7 +983,7 @@ namespace PersonnelSystem
             }
 
             ListEmployeesSelectedDepartment.Clear();
-            foreach ( var employee in listEmployeeDate )
+            foreach (var employee in listEmployeeDate)
             {
                 ListEmployeesSelectedDepartment.Add(employee);
             }
@@ -972,7 +1008,7 @@ namespace PersonnelSystem
             }
 
             DateAdmissionEmployee = null;
-            DateDismissalEmployee = null; 
+            DateDismissalEmployee = null;
         }
 
         /// <summary>
@@ -1004,7 +1040,7 @@ namespace PersonnelSystem
         /// </summary>
         private bool AddDepartmentCommand_CanExecute(object parameter)
         {
-            if(ListAllDepartments.Count > 0)
+            if (ListAllDepartments.Count > 0)
                 return true;
             else
                 return false;
@@ -1015,15 +1051,15 @@ namespace PersonnelSystem
         /// </summary>
         public void AddNewDepartment()
         {
-            var tempList = new List<Department>();
-            tempList.Add(MainDepartment);
-            tempList.AddRange(ListAllDepartments);
+            var tempList = new List<Department>( ListAllDepartments );
+            if(MainDepartment != null)
+                tempList.Add(MainDepartment);
 
-            WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(tempList);
+            WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(tempList, CurrentDepartment);
             windowAddNewDepartment.ShowDialog();
 
             var numberNewDepartment = ListAllDepartments.Count + 1;
-            if(string.IsNullOrEmpty(windowAddNewDepartment.NameDepartment))
+            if (string.IsNullOrEmpty(windowAddNewDepartment.NameDepartment))
             {
                 MessageBox.Show("Не задано имя", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -1042,11 +1078,24 @@ namespace PersonnelSystem
         }
 
         /// <summary>
+        /// Проверка команды, Удалить отдел
+        /// </summary>
+        private bool DeleteDepartmentCommand_CanExecute(Object parameter)
+        {
+            return CurrentDepartment != null;
+            //return (parameter as TreeView)?.SelectedItem != null;
+        }
+
+        /// <summary>
         /// Выполнить команду, Удалить отдел
         /// </summary>
         private void DeleteDepartmentCommand_Execute(Object parameter)
         {
             var selectedItem = (parameter as TreeView)?.SelectedItem;
+            if (selectedItem == null)
+            {
+                selectedItem = CurrentDepartment;
+            }
 
             if (selectedItem is Department selectedDepartment)
             {
@@ -1057,19 +1106,11 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка команды, Удалить отдел
-        /// </summary>
-        private bool DeleteDepartmentCommand_CanExecute(Object parameter)
-        {
-            return (parameter as TreeView)?.SelectedItem != null;
-        }
-
-        /// <summary>
         /// Удалить отдел
         /// </summary>
         public void DeleteDepartment(Department department, ObservableCollection<Department> ObserCollDepartments)
         {
-            if(!ObserCollDepartments.Remove(department))
+            if (!ObserCollDepartments.Remove(department))
             {
                 foreach (var item in ObserCollDepartments.Select(x => x.ListDepartments))
                 {
@@ -1085,7 +1126,7 @@ namespace PersonnelSystem
         /// </summary>
         public void FilterEmployees()
         {
-            if(ListEmployeesSelectedDepartment.Count < 1)
+            if (ListEmployeesSelectedDepartment.Count < 1)
             {
                 foreach (var item in ListAllEmployees)
                     ListEmployeesSelectedDepartment.Add(item);
@@ -1106,7 +1147,7 @@ namespace PersonnelSystem
                     ListEmployeesSelectedDepartment.Add(employee);
                 }
             }
-            else if(TextSearch == string.Empty)
+            else if (TextSearch == string.Empty)
             {
                 foreach (var employee in ListAllEmployees)
                 {
@@ -1134,13 +1175,13 @@ namespace PersonnelSystem
         public async void AddLogs(SaveLogAction saveLogAction, Employee? employee, Department? department)
         {
             if (employee == null &&
-                (SaveLogAction.AddEmployee == saveLogAction || 
-                SaveLogAction.DeleteEmployee == saveLogAction || 
+                (SaveLogAction.AddEmployee == saveLogAction ||
+                SaveLogAction.DeleteEmployee == saveLogAction ||
                 SaveLogAction.ChangeEmployee == saveLogAction ||
                 SaveLogAction.DismissEmployee == saveLogAction))
                 return;
-                
-            if(department == null) 
+
+            if (department == null)
                 return;
 
             string text = string.Empty;
@@ -1175,8 +1216,8 @@ namespace PersonnelSystem
                 }
                 textSubDeps = textSubDeps.Substring(0, textSubDeps.Length - 2);
             }
-            
-            #endregion 
+
+            #endregion
 
             switch (saveLogAction)
             {
@@ -1232,7 +1273,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Получение списка подсиненных отделов
+        /// Получение списка дочерних (подчиненных) отделов
         /// </summary>
         public void GetListSubsidiaryDepartments(List<Department> listSubsidiaryDepartments, List<Department> plusDep)
         {
@@ -1243,6 +1284,56 @@ namespace PersonnelSystem
                 if (department.ListDepartments.Count > 0)
                     GetListSubsidiaryDepartments(department.ListDepartments.ToList(), plusDep);
             }
+        }
+
+        /// <summary>
+        /// Проверка команды, переименовать отдел
+        /// </summary>
+        private bool RenameDepartmentCommand_CanExecute(object parameter)
+        {
+            return CurrentDepartment != null;
+        }
+
+        /// <summary>
+        /// Выполнить команду, переименовать отдел
+        /// </summary>
+        private void RenameDepartmentCommand_Execute(object parameter)
+        {
+            RenameDepartment(CurrentDepartment);
+        }
+
+        /// <summary>
+        /// Переименовать отдел
+        /// </summary>
+        private void RenameDepartment(Department? department)
+        {
+            if (department == null)
+                return;
+            
+            var list = ListAllDepartments;
+            if(MainDepartment != null)
+                list.Add(MainDepartment);
+
+            WindowInput windowInput = new WindowInput(list, department);
+            windowInput.ShowDialog();
+
+            if (windowInput.CanExecute == true)
+                department.NameDepartment = windowInput.NameDepartment;
+
+            System.Windows.Data.CollectionViewSource.GetDefaultView(RootDepartment).Refresh();
+        }
+
+        /// <summary>
+        /// Получить все отделы
+        /// </summary>
+        public static List<Department> GetAllDepartment(Department department)
+        {
+            var result = new List<Department> { department };
+            foreach (var listDepartments in department.ListDepartments)
+            {
+                result.AddRange(GetAllDepartment(listDepartments));
+            }
+            return result;
         }
 
         #endregion

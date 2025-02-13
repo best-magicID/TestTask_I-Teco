@@ -298,6 +298,11 @@
                         Width="Auto"
                         Command="{Binding AddDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
 
+                <Button Content="Переименовать отдел"
+                        Style="{StaticResource MarginForControl}" 
+                        Width="Auto"
+                        Command="{Binding RenameDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+                
                 <Button Content="Удалить отдел"
                         Style="{StaticResource MarginForControl}" 
                         Width="Auto"
@@ -311,13 +316,27 @@
             
             <TreeView x:Name="TreeViewDepartments" 
                       Height="Auto"
-                      ItemsSource="{Binding RootDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}}"
+                      ItemsSource="{Binding RootDepartment, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, UpdateSourceTrigger=PropertyChanged}"
                       SelectedItemChanged="TreeView_SelectedItemChanged">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding ListDepartments}" >
                         <TextBlock Text="{Binding NameDepartment}" />
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
+                
+                <TreeView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Добавить отдел" 
+                                  Command="{Binding AddDepartmentCommand}"
+                                  CommandParameter="{Binding CurrentDepartment}"/>
+                        <MenuItem Header="Переименовать отдел" 
+                                  Command="{Binding RenameDepartmentCommand}"
+                                  CommandParameter="{Binding CurrentDepartment}"/>
+                        <MenuItem Header="Удалить отдел" 
+                                  Command="{Binding DeleteDepartmentCommand}"
+                                  CommandParameter="{Binding CurrentDepartment}"/>
+                    </ContextMenu>
+                </TreeView.ContextMenu>
             </TreeView>
             
         </DockPanel>
