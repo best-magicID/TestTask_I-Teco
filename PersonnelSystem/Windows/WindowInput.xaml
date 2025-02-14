@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=local:WindowInput}"
         Title="Окно ввода" 
-        Height="100" 
+        Height="auto" 
         Width="350" 
         WindowStartupLocation="CenterScreen" 
         SizeToContent="WidthAndHeight">
@@ -30,20 +30,31 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Введите название отдела"
+        <TextBlock Text="Текущее название отдела: "
                    Grid.Row="0"
                    Grid.Column="0"
                    Style="{StaticResource MarginForControl}"/>
 
-        <TextBox Grid.Row="0"
+        <TextBlock Text="{Binding SelectedDepartment.NameDepartment}"
+                   Grid.Row="0"
+                   Grid.Column="1"
+                   Style="{StaticResource MarginForControl}"/>
+
+        <TextBlock Text="Новое название отдела: "
+                   Grid.Row="1"
+                   Grid.Column="0"
+                   Style="{StaticResource MarginForControl}"/>
+
+        <TextBox Grid.Row="1"
                  Grid.Column="1"
                  Style="{StaticResource MarginForControl}"
                  TextChanged="TextBox_TextChanged"/>
 
         <Button Content="Переименовать отдел" 
-                Grid.Row="1"
+                Grid.Row="2"
                 Grid.Column="1"
                 Style="{StaticResource MarginForControl}"
                 Command="{Binding RenameDepartmentCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:WindowInput}}"/>

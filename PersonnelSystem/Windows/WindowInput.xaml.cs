@@ -24,7 +24,19 @@ namespace PersonnelSystem.Windows
         }
         private string _NameDepartment = string.Empty;
 
-        public Department SelectedDepartment;
+        /// <summary>
+        /// Выбранный отдел для переименования
+        /// </summary>
+        public Department SelectedDepartment
+        {
+            get => _SelectedDepartment;
+            set
+            {
+                _SelectedDepartment = value;
+                OnPropertyChanged(nameof(SelectedDepartment));
+            }
+        }
+        private Department _SelectedDepartment;
 
         List<Department> departments = [];
 
@@ -40,6 +52,8 @@ namespace PersonnelSystem.Windows
             this.SelectedDepartment = SelectedDepartment;
 
             RenameDepartmentCommand = new RaiseCommand(RenameDepartmentCommand_Execute, RenameDepartmentCommand_CanExecute);
+
+            DataContext = this;
         }
 
         #region ОБНОВЛЕНИЕ UI

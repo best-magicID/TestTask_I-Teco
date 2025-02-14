@@ -298,7 +298,7 @@ namespace PersonnelSystem
 
         #endregion
 
-        #region МЕТОДЫ И КОМАНДЫ
+        #region МЕТОДЫ
 
         #region ОБНОВЛЕНИЕ UI
 
@@ -351,7 +351,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка команды, Показать всех сотрудников
+        /// Проверка для команды, Показать всех сотрудников
         /// </summary>
         private bool ShowAllEmployeesCommand_CanExecute(object parameter)
         {
@@ -366,6 +366,14 @@ namespace PersonnelSystem
         /// </summary>
         private void ShowAllEmployeesCommand_Execute(object parameter)
         {
+            ShowAllEmployees();
+        }
+
+        /// <summary>
+        /// Показать всех сотрудников
+        /// </summary>
+        public void ShowAllEmployees()
+        {
             ListEmployeesSelectedDepartment.Clear();
 
             foreach (var employees in ListAllEmployees)
@@ -375,7 +383,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка, перед Добавлением нового сотрудника
+        /// Проверка для команды, Добавить нового сотрудника
         /// </summary>
         private bool AddEmployeeCommand_CanExecute(object? parameter)
         {
@@ -383,7 +391,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Добавление нового сотрудника
+        /// Выполнить команду, Добавить нового сотрудника
         /// </summary>
         private void AddEmployeeCommand_Execute(object? parameter)
         {
@@ -436,7 +444,7 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка, есть ли что-то в полях для ввода информации о сотруднике
+        /// Проверка, есть ли что-то в полях для ввода (информации о сотруднике)
         /// </summary>
         public bool IsTextInField()
         {
@@ -462,7 +470,15 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Выполнить команду, Очистить поля для заполнения нового сотрудника 
+        /// Проверка для команды, Очистить поля
+        /// </summary>
+        private bool NewEmployeeCommand_CanExecute(object? parameter)
+        {
+            return IsTextInField();
+        }
+
+        /// <summary>
+        /// Выполнить команду, Очистить поля
         /// </summary>
         public void NewEmployeeCommand_Execute(object? parameter)
         {
@@ -472,11 +488,16 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка команды, перед очищением полей
+        /// Проверка для команды, уволить сотрудника
         /// </summary>
-        private bool NewEmployeeCommand_CanExecute(object? parameter)
+        private bool DismissEmployeeCommand_CanExecute(object? parameter)
         {
-            return IsTextInField();
+            if (CurrentEmployee != null && CurrentEmployee.DateDismissalEmployee == null && DateDismissalEmployee != null)
+            {
+                return true;
+            }
+            else
+                return false;
         }
 
         /// <summary>
@@ -510,32 +531,35 @@ namespace PersonnelSystem
         }
 
         /// <summary>
-        /// Проверка для команды, уволить сотрудника
-        /// </summary>
-        private bool DismissEmployeeCommand_CanExecute(object? parameter)
-        {
-            if (CurrentEmployee != null && CurrentEmployee.DateDismissalEmployee == null && DateDismissalEmployee != null)
-            {
-                return true;
-            }
-            else
-                return false;
-        }
-
-        /// <summary>
         /// Выполнить команду, Удалить сотрудника
         /// </summary>
         private void DeleteEmployeeCommand_Execute(object parameter)
         {
-            AddLogs(SaveLogAction.DeleteEmployee, CurrentEmployee, CurrentEmployee!.DepartmentEmployee);
+            if(CurrentEmployee == null) 
+                return;
 
-            ListEmployeesSelectedDepartment.Remove(CurrentEmployee!);
+            DeleteEmployee(CurrentEmployee);
+        }
 
-            ListAllEmployees.Remove(CurrentEmployee!);
-            ListAllDepartments.First(x => x.ListEmployees.Remove(CurrentEmployee!));
+        /// <summary>
+        /// Удалить сотрудника
+        /// </summary>
+        private void DeleteEmployee(Employee employee)
+        {
+            ListEmployeesSelectedDepartment.Remove(employee);
 
+            ListAllEmployees.Remove(employee);
+
+            foreach (var department in ListAllDepartments)
+            {
+                department.ListEmployees.Remove(employee);
+            }
+            //ListAllDepartments.Where(x => x.ListEmployees.Remove(employee));
+
+            AddLogs(SaveLogAction.DeleteEmployee, employee, employee.DepartmentEmployee);
             CurrentEmployee = null;
         }
+
 
         /// <summary>
         /// Проверка для команды, удалить сотрудника
@@ -676,7 +700,7 @@ namespace PersonnelSystem
                             if (csvReader.ColumnCount < countPropertiesInEmployee)
                                 continue;
 
-                            var employeesAsCsv = csvReader!.GetRecord<EmployeeAsCsv>();
+                            var employeesAsCsv = csvReader.GetRecord<EmployeeAsCsv>();
 
                             ListAllEmployeesAsCsv.Add(new EmployeeAsCsv(
                                 TagClass: employeesAsCsv.TagClass,
@@ -933,24 +957,14 @@ namespace PersonnelSystem
         /// </summary>
         public void ClearTextInControls()
         {
-            TextBoxSurnameEmployee.Text = string.Empty;
-            TextBoxNameEmployee.Text = string.Empty;
-            TextBoxPatronymicEmployee.Text = string.Empty;
-            ComboBoxListDepartment.SelectedItem = null;
-            DatePickerAdmissionEmployee.Text = string.Empty;
-            DatePickerDismissalEmployee.Text = string.Empty;
-        }
+            SurnameEmployee = string.Empty;
+            NameEmployee = string.Empty;
+            PatronymicEmployee = string.Empty;
 
-        /// <summary>
-        /// Получение списка всех сотрудников 
-        /// Не актуально
-        /// </summary>
-        public dynamic GetAllEmployees()
-        {
-            var employees = from department in ListAllDepartments
-                            from employee in department.ListEmployees
-                            select employee;
-            return employees;
+            DepartmentEmployee = null;
+
+            DateAdmissionEmployee = null;
+            DateDismissalEmployee = null;
         }
 
         /// <summary>
@@ -1058,7 +1072,6 @@ namespace PersonnelSystem
             WindowAddNewDepartment windowAddNewDepartment = new WindowAddNewDepartment(tempList, CurrentDepartment);
             windowAddNewDepartment.ShowDialog();
 
-            var numberNewDepartment = ListAllDepartments.Count + 1;
             if (string.IsNullOrEmpty(windowAddNewDepartment.NameDepartment))
             {
                 MessageBox.Show("Не задано имя", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -1066,7 +1079,7 @@ namespace PersonnelSystem
             }
 
             Department newDepartment = new Department(TagClass: DepartmentAsCsv.Tag,
-                                                      Id_department: numberNewDepartment,
+                                                      Id_department: ListAllDepartments.Count + 1,
                                                       NameDepartment: windowAddNewDepartment.NameDepartment,
                                                       ParentDepartment: windowAddNewDepartment.SelectedDepartment,
                                                       TypeDepartment: Department.TypeDepartments.Subordinate);
@@ -1083,7 +1096,6 @@ namespace PersonnelSystem
         private bool DeleteDepartmentCommand_CanExecute(Object parameter)
         {
             return CurrentDepartment != null;
-            //return (parameter as TreeView)?.SelectedItem != null;
         }
 
         /// <summary>
@@ -1275,7 +1287,7 @@ namespace PersonnelSystem
         /// <summary>
         /// Получение списка дочерних (подчиненных) отделов
         /// </summary>
-        public void GetListSubsidiaryDepartments(List<Department> listSubsidiaryDepartments, List<Department> plusDep)
+        public static void GetListSubsidiaryDepartments(List<Department> listSubsidiaryDepartments, List<Department> plusDep)
         {
             foreach (var department in listSubsidiaryDepartments)
             {
@@ -1318,9 +1330,10 @@ namespace PersonnelSystem
             windowInput.ShowDialog();
 
             if (windowInput.CanExecute == true)
+            {
                 department.NameDepartment = windowInput.NameDepartment;
-
-            System.Windows.Data.CollectionViewSource.GetDefaultView(RootDepartment).Refresh();
+                System.Windows.Data.CollectionViewSource.GetDefaultView(RootDepartment).Refresh();
+            }
         }
 
         /// <summary>
